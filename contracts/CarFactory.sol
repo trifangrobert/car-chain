@@ -28,7 +28,7 @@ contract CarFactory {
     }
 
     function _nextCarId() private view returns (uint256) {
-        return cars.length();
+        return cars.length;
     }
 
     function _initializeCar(
@@ -38,7 +38,7 @@ contract CarFactory {
         uint16 year,
         uint256 mileage,
         uint256 price
-    ) internal returns (Car) {
+    ) internal returns (Car memory) {
         uint256 carId = _nextCarId();
         Car memory newCar = Car({
             id: carId,
@@ -60,7 +60,7 @@ contract CarFactory {
         uint256 _mileage,
         uint256 _price
     ) public {
-        Car newCar = _initializeCar(_model, _manufacturer, _color, _year, _mileage, _price);
+        Car memory newCar = _initializeCar(_model, _manufacturer, _color, _year, _mileage, _price);
         cars.push(newCar);
 
         isCarForSale[newCar.id] = false;

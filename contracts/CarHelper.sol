@@ -16,7 +16,7 @@ contract CarHelper is CarFactory {
         _;
     }
 
-    modifier isCarForSale(uint256 _carId) {
+    modifier checkCarForSale(uint256 _carId) {
         require(isCarForSale[_carId], "Car is not for sale");
         _;
     }
@@ -35,7 +35,7 @@ contract CarHelper is CarFactory {
         emit CarDelistedForSale(_carId, car.model, car.manufacturer);
     }
 
-    function buyCar(uint256 _carId) external payable isCarForSale(_carId) {
+    function buyCar(uint256 _carId) external payable checkCarForSale(_carId) {
         Car storage car = cars[_carId];
         require(msg.value >= car.price, "Not enough value");
 
@@ -50,7 +50,7 @@ contract CarHelper is CarFactory {
     }
 
     function getCarsOwnedByMe() public view returns (Car[] memory) {
-        uint256 totalCars = carToken.balanceOf(_msg.sender);
+        uint256 totalCars = carToken.balanceOf(msg.sender);
         Car[] memory myCars = new Car[](totalCars);
         uint256 counter = 0;
 
