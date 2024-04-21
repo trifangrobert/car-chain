@@ -25,7 +25,7 @@ contract CarFactory {
         carToken = CarToken(_carTokenAddress);
     }
 
-    function _createCar(string memory _model, string memory _manufacturer, string memory _color, uint16 _year, uint256 _mileage, uint256 _price) private {
+    function _createCar(string memory _model, string memory _manufacturer, string memory _color, uint16 _year, uint256 _mileage, uint256 _price) public {
         Car memory newCar = Car({
             id: cars.length,
             model: _model,
