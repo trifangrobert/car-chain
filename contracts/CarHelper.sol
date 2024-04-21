@@ -17,21 +17,21 @@ contract CarHelper is CarFactory {
     }
 
     modifier isCarForSale(uint256 _carId) {
-        require(cars[_carId].forSale, "Car is not for sale");
+        require(isCarForSale[_carId], "Car is not for sale");
         _;
     }
 
-    function listCarForSale(uint256 _carId, uint256 _price) public onlyCarOwner {
+    function listCarForSale(uint256 _carId, uint256 _price) public onlyCarOwner(msg.sender, _carId) {
         // using `storage` to write on blockchain
         Car storage car = cars[_carId];
-        car.forSale = true;
+        isCarForSale[_carId] = true;
         car.price = _price;
         emit CarListedForSale(car.id, car.model, car.manufacturer, car.price);
     }
 
-    function delistCarFromSale(uint256 _carId) public onlyCarOwner {
+    function delistCarFromSale(uint256 _carId) public onlyCarOwner(msg.sender, _carId) {
         Car storage car = cars[_carId];
-        car.forSale = false;
+        isCarForSale[_carId] = false;
         emit CarDelistedForSale(_carId, car.model, car.manufacturer);
     }
 
@@ -42,7 +42,7 @@ contract CarHelper is CarFactory {
         address seller = carToken.ownerOf(_carId);
         require(seller != msg.sender, "Buyer cannot be the seller");
 
-        car.forSale = false;
+        isCarForSale[_carId] = false;
         carToken.safeTransferFrom(seller, msg.sender, _carId);
         payable(seller).transfer(msg.value);
 
@@ -67,7 +67,7 @@ contract CarHelper is CarFactory {
     function getCarsForSale() public view returns (Car[] memory) {
         uint256 totalForSale = 0;
         for (uint256 i = 0;i < cars.length;++i) {
-            if (cars[i].forSale) {
+            if (isCarForSale[cars[i].id]) {
                 totalForSale++;
             }
         }
@@ -76,7 +76,7 @@ contract CarHelper is CarFactory {
         uint256 counter = 0;
 
         for (uint256 i = 0;i < cars.length;++i) {
-            if (cars[i].forSale) {
+            if (isCarForSale[cars[i].id]) {
                 forSaleCars[counter] = cars[i];
                 counter++;
             }
