@@ -35,7 +35,7 @@ contract CarHelper is CarFactory {
         emit CarDelistedForSale(_carId, car.model, car.manufacturer);
     }
 
-    function buyCar(uint256 _carId) public payable isCarForSale(_carId) {
+    function buyCar(uint256 _carId) external payable isCarForSale(_carId) {
         Car storage car = cars[_carId];
         require(msg.value >= car.price, "Not enough value");
 

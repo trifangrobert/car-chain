@@ -5,8 +5,9 @@ import "./CarToken.sol";
 
 contract CarFactory {
     CarToken public carToken;
-    
-    mapping (uint256 => bool) public isCarForSale;
+    uint256 taxRate;
+
+    mapping(uint256 => bool) public isCarForSale;
 
     struct Car {
         uint256 id;
@@ -26,20 +27,44 @@ contract CarFactory {
         carToken = CarToken(_carTokenAddress);
     }
 
-    function _createCar(string memory _model, string memory _manufacturer, string memory _color, uint16 _year, uint256 _mileage, uint256 _price) public {
-        uint256 newCarId = cars.length;
+    function _nextCarId() private view returns (uint256) {
+        return cars.length();
+    }
+
+    function _initializeCar(
+        string memory model,
+        string memory manufacturer,
+        string memory color,
+        uint16 year,
+        uint256 mileage,
+        uint256 price
+    ) internal returns (Car) {
+        uint256 carId = _nextCarId();
         Car memory newCar = Car({
-            id: newCarId,
-            model: _model,
-            manufacturer: _manufacturer,
-            color: _color,
-            year: _year,
-            mileage: _mileage,
-            price: _price
+            id: carId,
+            model: model,
+            manufacturer: manufacturer,
+            color: color,
+            year: year,
+            mileage: mileage,
+            price: price
         });
-        isCarForSale[newCarId] = false;
+        return newCar;
+    }
+
+    function createCar(
+        string memory _model,
+        string memory _manufacturer,
+        string memory _color,
+        uint16 _year,
+        uint256 _mileage,
+        uint256 _price
+    ) public {
+        Car newCar = _initializeCar(_model, _manufacturer, _color, _year, _mileage, _price);
         cars.push(newCar);
-        carToken.mint(msg.sender, newCar.id, "");  // TODO: add TokenURI for metadata
+
+        isCarForSale[newCar.id] = false;
+        carToken.mint(msg.sender, newCar.id, ""); // TODO: add TokenURI for metadata
         emit NewCar(newCar.id, _model, _manufacturer, _price);
     }
 }
