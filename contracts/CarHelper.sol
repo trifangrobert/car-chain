@@ -49,6 +49,40 @@ contract CarHelper is CarFactory {
         emit CarPurchased(seller, msg.sender, car.model, car.manufacturer, car.price);
     }
 
+    function getCarsOwnedByMe() public view returns (Car[] memory) {
+        uint256 totalCars = carToken.balanceOf(_msg.sender);
+        Car[] memory myCars = new Car[](totalCars);
+        uint256 counter = 0;
 
+        for (uint256 i = 0;i < cars.length;++i) {
+            if (carToken.ownerOf(cars[i].id) == msg.sender) {
+                myCars[counter] = cars[i];
+                counter++;
+            }
+        }
+
+        return myCars;
+    }
+
+    function getCarsForSale() public view returns (Car[] memory) {
+        uint256 totalForSale = 0;
+        for (uint256 i = 0;i < cars.length;++i) {
+            if (cars[i].forSale) {
+                totalForSale++;
+            }
+        }
+
+        Car[] memory forSaleCars = new Car[](totalForSale);
+        uint256 counter = 0;
+
+        for (uint256 i = 0;i < cars.length;++i) {
+            if (cars[i].forSale) {
+                forSaleCars[counter] = cars[i];
+                counter++;
+            }
+        }
+
+        return forSaleCars;
+    }
 
 }
