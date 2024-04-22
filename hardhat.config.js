@@ -1,6 +1,9 @@
 require('@nomiclabs/hardhat-ethers');
 
 /** @type import('hardhat/config').HardhatUserConfig */
+
+//Add allowUnlimitedContractSize: true to your hardhat.config.ts under defaultNetworks.networks both "hardhat" and "localhost".
+
 module.exports = {
   networks: {
     hardhat: {

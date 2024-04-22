@@ -1,27 +1,24 @@
-async function main() {
+require("@nomiclabs/hardhat-ethers");
+const { ethers } = require("hardhat");
+
+async function deploy() {
     const [deployer] = await ethers.getSigners();
     console.log("Deploying contracts with the account:", deployer.address);
 
     const CarToken = await ethers.getContractFactory("CarToken");
-    const carToken = await CarToken.deploy();
+    const carToken = await CarToken.deploy(deployer.address);
     await carToken.deployed();
 
-    console.log("CarToken address:", carToken.address);
+    console.log("CarToken deployed to:", carToken.address);
 
-    const CarFactory = await ethers.getContractFactory("CarFactory");
-    const carFactory = await CarFactory.deploy(carToken.address);
-    await carFactory.deployed();
+    const CarMarketplace = await ethers.getContractFactory("CarMarketplace");
+    const carMarketplace = await CarMarketplace.deploy(carToken.address);
+    await carMarketplace.deployed();
 
-    console.log("CarFactory address:", carFactory.address);
-
-    const CarHelper = await ethers.getContractFactory("CarHelper");
-    const carHelper = await CarHelper.deploy(carToken.address);
-    await carHelper.deployed();
-
-    console.log("CarHelper address:", carHelper.address);
+    console.log("CarMarketplace deployed to:", carMarketplace.address);
 }
 
-main().then(() => process.exit(0)).catch(error => {
+deploy().then(() => process.exit(0)).catch(error => {
     console.error(error);
     process.exit(1);
 });
