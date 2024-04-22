@@ -30,16 +30,25 @@ contract CarMarketplace is ReentrancyGuard {
     );
     event ListingCancelled(uint256 indexed tokenId, address indexed seller);
 
-    constructor(address _carTokenAddress) {
-        carToken = CarToken(_carTokenAddress);
-    }
-
-    function listCarForSale(uint256 tokenId, uint256 price) external {
+    modifier onlyTokenOwner(uint256 tokenId) {
         require(
             carToken.ownerOf(tokenId) == msg.sender,
             "Caller is not the owner of the token"
         );
+        _;
+    }
 
+    constructor(address _carTokenAddress) {
+        carToken = CarToken(_carTokenAddress);
+    }
+
+    function _updateListingStatus(uint256 tokenId, bool status) private {
+        listings[tokenId].isActive = status;
+    }
+
+    function listCarForSale(uint256 tokenId, uint256 price) external onlyTokenOwner(tokenId) {
+        require(!isTokenListed(tokenId), "This car is already listed for sale");
+    
         listings[tokenId] = Listing({
             tokenId: tokenId,
             seller: payable(msg.sender),
@@ -59,21 +68,17 @@ contract CarMarketplace is ReentrancyGuard {
 
         carToken.safeTransferFrom(listing.seller, msg.sender, tokenId);
         listing.seller.transfer(msg.value);
-        listings[tokenId].isActive = false;
+        _updateListingStatus(tokenId, false);
         listings[tokenId].seller = payable(msg.sender);
 
         emit CarSold(tokenId, prevOwner, msg.sender, listing.price);
     }
 
-    function cancelListing(uint256 tokenId) external {
+    function cancelListing(uint256 tokenId) external onlyTokenOwner(tokenId) {
         Listing memory listing = listings[tokenId];
         require(listing.isActive, "This car is not for sale");
-        require(
-            carToken.ownerOf(tokenId) == msg.sender,
-            "Caller is not the owner of the token"
-        );
 
-        listings[tokenId].isActive = false;
+        _updateListingStatus(tokenId, false);
 
         emit ListingCancelled(tokenId, msg.sender);
     }
@@ -123,7 +128,7 @@ contract CarMarketplace is ReentrancyGuard {
         return ownedCars;
     }
 
-    function isTokenListed(uint256 tokenId) external view returns (bool) {
+    function isTokenListed(uint256 tokenId) public view returns (bool) {
         return listings[tokenId].isActive;
     }
 }
