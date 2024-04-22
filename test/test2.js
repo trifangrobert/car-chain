@@ -6,7 +6,7 @@ chai.use(waffleChai);
 const expect = chai.expect;
 
 
-describe("Transcations", function () {
+describe("Transactions", function () {
   this.timeout(120000);
   let CarToken;
   let carToken;
