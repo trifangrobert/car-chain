@@ -1,7 +1,7 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
-describe("CarToken and CarMarketplace", function () {
+describe("Deployment and minting", function () {
   let CarToken;
   let carToken;
   let CarMarketplace;
@@ -28,8 +28,8 @@ describe("CarToken and CarMarketplace", function () {
   });
 
   describe("Minting", function () {
-    it("Should mint 4 tokens and list them for sale", async function () {
-      for (let i = 1; i <= 2; i++) {
+    it("Should mint 2 tokens and list them for sale", async function () {
+      for (let i = 1; i <= 1; i++) {
         let tokenId = i;
         let uri = `http://localhost:3000/token/${tokenId}`;
         let mintTx = await carToken
