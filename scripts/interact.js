@@ -24,7 +24,7 @@ async function interact() {
     console.log("Minting new tokens...");
     for (let i = 1; i < 5; i++) {
         let tokenId = i;
-        let uri = `http://localhost:3000/token/${tokenId}`;
+        let uri = `http://localhost:3001/token/${tokenId}`;
         let mintTx = await carToken.connect(owner).safeMint(users[i].address, tokenId, uri);
         await mintTx.wait();
     }
