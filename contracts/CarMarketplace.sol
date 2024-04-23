@@ -105,6 +105,7 @@ contract CarMarketplace is ReentrancyGuard {
         return availableListings;
     }
 
+    // BIG BUG HERE, replace uint256 with listing
     function getCarsOwnedBy(
         address owner
     ) external view returns (uint256[] memory) {
@@ -113,7 +114,6 @@ contract CarMarketplace is ReentrancyGuard {
         uint256 count = 0;
 
         for (uint256 i = 1; i <= totalTokens; i++) {
-            // Assuming token IDs start at 1
             if (carToken.ownerOf(i) == owner) {
                 tempCars[count] = i;
                 count++;
