@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAvailableCars } from '../hooks/useAvailableCars'; 
 
-function AvailableCarsList() {
+function AvailableCars() {
     const { cars, loading, error } = useAvailableCars();
 
     if (loading) return <div>Loading...</div>;
