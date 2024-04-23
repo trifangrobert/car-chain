@@ -4,7 +4,7 @@ const cors = require('cors');
 const app = express();
 app.use(cors());  // Enable CORS to allow your NFT smart contract to access the JSON data
 
-const port = 3000;
+const port = 3001;
 
 // Sample data
 const cars = {

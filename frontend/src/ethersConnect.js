@@ -3,7 +3,7 @@ import CarToken from './contracts/CarToken.json';
 import CarMarketplace from './contracts/CarMarketplace.json';
 
 const provider = new ethers.BrowserProvider(window.ethereum);
-const signer = provider.getSigner();
+const signer = await provider.getSigner();
 
 const carTokenContract = new ethers.Contract(
   CarToken.address,

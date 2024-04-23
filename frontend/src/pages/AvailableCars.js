@@ -1,5 +1,5 @@
 import React from 'react';
-import { useAvailableCars } from '../hooks/useAvailableCars';  // Adjust path as necessary
+import { useAvailableCars } from '../hooks/useAvailableCars'; 
 
 function AvailableCarsList() {
     const { cars, loading, error } = useAvailableCars();
