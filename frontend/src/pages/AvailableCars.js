@@ -21,4 +21,4 @@ function AvailableCarsList() {
     );
 }
 
-export default AvailableCarsList;
+export default AvailableCars;
