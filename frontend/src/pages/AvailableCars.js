@@ -2,9 +2,24 @@ import React from 'react';
 import { useAvailableCars } from '../hooks/useAvailableCars'; 
 import { faCar, faMoneyBill } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { carMarketplaceContract } from '../ethersConnect'; // Import contract instance
 
 function AvailableCars() {
     const { cars, loading, error } = useAvailableCars();
+
+    const buyCar = async (tokenId, price) => {
+        try {
+            // Call buyCar function from carMarketplaceContract
+            const transaction = await carMarketplaceContract.buyCar(tokenId, { value: price });
+            await transaction.wait();
+
+            // Reload page after successful purchase
+
+        } catch (err) {
+            console.error('Failed to buy car:', err);
+            // Handle error
+        }
+    };
 
     if (loading) return <div>Loading...</div>;
     if (error) return <div>Error: {error}</div>;
@@ -21,6 +36,22 @@ function AvailableCars() {
                             <FontAwesomeIcon icon={faMoneyBill} style={{ marginRight: '10px' }} />
                             <strong>Price:</strong> {car.price} WEI<br />
                             <strong>Status:</strong> {car.isActive ? 'Available' : 'Sold'}
+                            <div style={{ marginTop: '10px' }}>
+                                <button 
+                                    onClick={() => buyCar(car.tokenId, car.price)} 
+                                    style={{ 
+                                        backgroundColor: '#3D52A0', 
+                                        color: 'white', 
+                                        border: 'none', 
+                                        padding: '10px 20px', 
+                                        borderRadius: '5px', 
+                                        fontSize: '16px', 
+                                        cursor: 'pointer' 
+                                    }}
+                                >
+                                    Buy
+                                </button>
+                            </div>
                         </li>
                     )
                 ))}
