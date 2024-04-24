@@ -33,7 +33,6 @@ contract CarToken is ERC721, ERC721URIStorage, ERC721Burnable, Ownable {
     }
 
     // The following functions are overrides required by Solidity.
-
     function tokenURI(uint256 tokenId)
         public
         view

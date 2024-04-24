@@ -46,9 +46,12 @@ contract CarMarketplace is ReentrancyGuard {
         listings[tokenId].isActive = status;
     }
 
-    function listCarForSale(uint256 tokenId, uint256 price) external onlyTokenOwner(tokenId) {
+    function listCarForSale(
+        uint256 tokenId,
+        uint256 price
+    ) external onlyTokenOwner(tokenId) {
         require(!isTokenListed(tokenId), "This car is already listed for sale");
-    
+
         listings[tokenId] = Listing({
             tokenId: tokenId,
             seller: payable(msg.sender),
@@ -105,7 +108,7 @@ contract CarMarketplace is ReentrancyGuard {
         return availableListings;
     }
 
-    // BIG BUG HERE, replace uint256 with listing
+    // this function should return the list of tokenIds owned by the address and the corresponding URI  
     function getCarsOwnedBy(
         address owner
     ) external view returns (uint256[] memory) {
@@ -120,7 +123,7 @@ contract CarMarketplace is ReentrancyGuard {
             }
         }
 
-        uint256[] memory ownedCars = new uint256[](count);
+        uint256[] memory ownedCars = new uint256[](count);        
         for (uint256 i = 0; i < count; i++) {
             ownedCars[i] = tempCars[i];
         }
