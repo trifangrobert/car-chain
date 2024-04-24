@@ -18,7 +18,7 @@ export function useMyCars(address) {
       setLoading(true);
 
       try {
-        console.log("Fetching cars owned by: ", address);
+        console.log("Fetching cars owned by the boss: ", address);
         const response = await carMarketplaceContract.getCarsOwnedBy(address);
         console.log("Response: ", response);
         

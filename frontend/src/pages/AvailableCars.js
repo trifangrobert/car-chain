@@ -3,6 +3,7 @@ import { useAvailableCars } from '../hooks/useAvailableCars';
 import { faCar, faMoneyBill } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { carMarketplaceContract } from '../ethersConnect'; // Import contract instance
+import { Link } from 'react-router-dom'; // Import Link for navigation
 
 function AvailableCars() {
     const { cars, loading, error } = useAvailableCars();
@@ -27,6 +28,26 @@ function AvailableCars() {
     return (
         <div style={{ textAlign: 'center', marginTop: '0px', backgroundColor: '#ADBBDA', padding: '20px' }}>
             <h1 style={{ fontSize: '36px', marginBottom: '30px', color: '#3D52A0' }}>Car Marketplace</h1>
+
+            {/* Navigation section */}
+            <div style={{ marginBottom: '20px' }}>
+                <Link to="/my-cars">
+                    <button 
+                        style={{ 
+                            backgroundColor: '#3D52A0', 
+                            color: 'white', 
+                            border: 'none', 
+                            padding: '10px 20px', 
+                            borderRadius: '5px', 
+                            fontSize: '16px', 
+                            cursor: 'pointer' 
+                        }}
+                    >
+                        Check My Cars
+                    </button>
+                </Link>
+            </div>
+
             <ul style={{ listStyleType: 'none', padding: 0 }}>
                 {cars.map(car => (
                     car.isActive && (
