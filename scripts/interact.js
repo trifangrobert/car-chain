@@ -22,25 +22,27 @@ async function interact() {
 
     // Minting a new token
     console.log("Minting new tokens...");
-    for (let i = 1; i < 5; i++) {
+    for (let i = 1; i < 10; i++) {
         let tokenId = i;
         let uri = `http://localhost:3001/token/${tokenId}`;
-        let mintTx = await carToken.connect(owner).safeMint(users[i].address, tokenId, uri);
+        let ind = Math.min(i, 4)
+        let mintTx = await carToken.connect(owner).safeMint(users[ind].address, tokenId, uri);
         await mintTx.wait();
     }
     console.log("Tokens minted successfully!");
 
     // check token owner
-    for (let i = 1; i < 5; i++) {
+    for (let i = 1; i < 10; i++) {
         console.log(`Checking token owner and URI for token ${i}...`);
         const tokenOwner = await carToken.ownerOf(i);
         console.log(tokenOwner);
         const tokenURI = await carToken.tokenURI(i);
         console.log(tokenURI);
+        let ind = Math.min(i, 4)
 
         // set approval for marketplace
-        console.log(`Approval set for token ${i} by ${users[i].address}.`)
-        const approvalAllTx = await carToken.connect(users[i]).setApprovalForAll(carMarketplace.address, true);
+        console.log(`Approval set for token ${i} by ${users[ind].address}.`)
+        const approvalAllTx = await carToken.connect(users[ind]).setApprovalForAll(carMarketplace.address, true);
         await approvalAllTx.wait();
     }
     
@@ -52,11 +54,12 @@ async function interact() {
     // list cars for sale
     console.log("Listing some cars for sale...");
 
-    for (let i = 1; i < 5; i++) {
+    for (let i = 1; i < 10; i++) {
         let tokenId = i;
         let price = i * 1000;
+        let ind = Math.min(i, 4);
         console.log(`Listing token ${tokenId} for ${price} wei...`);
-        let listTx = await carMarketplace.connect(users[i]).listCarForSale(tokenId, price);
+        let listTx = await carMarketplace.connect(users[ind]).listCarForSale(tokenId, price);
         await listTx.wait();
     }
     console.log("Cars listed for sale successfully!");
