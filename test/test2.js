@@ -28,7 +28,7 @@ describe("Transactions", function () {
 
     for (let i = 1; i <= 3; i++) {
       let tokenId = i;
-      let uri = `http://localhost:3000/token/${tokenId}`;
+      let uri = `http://localhost:3001/token/${tokenId}`;
       let mintTx = await carToken
         .connect(owner)
         .safeMint(users[i].address, tokenId, uri);

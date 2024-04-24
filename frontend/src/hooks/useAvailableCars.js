@@ -11,9 +11,11 @@ export function useAvailableCars() {
             setLoading(true);
             try {
                 const carData = await carMarketplaceContract.getAvailableListings();
+                console.log('CarData: ', carData);  
                 setCars(carData.map(car => ({
                     tokenId: car.tokenId.toString(),
-                    price: car.price.toString()  // Convert BigNumber to string for easier handling
+                    price: car.price.toString(),  // Convert BigNumber to string for easier handling
+                    isAvailable: car.isAvailable
                 })));
                 setError(null);
             } catch (err) {

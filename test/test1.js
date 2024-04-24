@@ -31,7 +31,7 @@ describe("Deployment and minting", function () {
     it("Should mint 2 tokens and list them for sale", async function () {
       for (let i = 1; i <= 1; i++) {
         let tokenId = i;
-        let uri = `http://localhost:3000/token/${tokenId}`;
+        let uri = `http://localhost:3001/token/${tokenId}`;
         let mintTx = await carToken
           .connect(owner)
           .safeMint(users[i].address, tokenId, uri);
