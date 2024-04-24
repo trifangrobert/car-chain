@@ -2,23 +2,19 @@ import React from 'react';
 import { useAvailableCars } from '../hooks/useAvailableCars'; 
 import { faCar, faMoneyBill } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { carMarketplaceContract } from '../ethersConnect'; // Import contract instance
-import { Link } from 'react-router-dom'; // Import Link for navigation
+import { carMarketplaceContract } from '../ethersConnect'; 
+import { Link } from 'react-router-dom';
 
 function AvailableCars() {
     const { cars, loading, error } = useAvailableCars();
 
     const buyCar = async (tokenId, price) => {
         try {
-            // Call buyCar function from carMarketplaceContract
             const transaction = await carMarketplaceContract.buyCar(tokenId, { value: price });
             await transaction.wait();
 
-            // Reload page after successful purchase
-
         } catch (err) {
             console.error('Failed to buy car:', err);
-            // Handle error
         }
     };
 
@@ -28,8 +24,6 @@ function AvailableCars() {
     return (
         <div style={{ textAlign: 'center', marginTop: '0px', backgroundColor: '#ADBBDA', padding: '20px' }}>
             <h1 style={{ fontSize: '36px', marginBottom: '30px', color: '#3D52A0' }}>Car Marketplace</h1>
-
-            {/* Navigation section */}
             <div style={{ marginBottom: '20px' }}>
                 <Link to="/my-cars">
                     <button 
@@ -58,6 +52,12 @@ function AvailableCars() {
                             <strong>Price:</strong> {car.price} WEI<br />
                             <strong>Status:</strong> {car.isActive ? 'Available' : 'Sold'}
                             <div style={{ marginTop: '10px' }}>
+                            <br />
+                            <div>
+                                <strong>Name:</strong> {car.name} <br />
+                                <strong>Description:</strong> {car.description} <br />
+                                <img src={car.image} alt={car.name} style={{ maxWidth: '200px', maxHeight: '200px' }} /> <br />
+                            </div>
                                 <button 
                                     onClick={() => buyCar(car.tokenId, car.price)} 
                                     style={{ 

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { carMarketplaceContract } from '../ethersConnect';  // Adjust path as necessary
-
+import { carMarketplaceContract, carTokenContract } from '../ethersConnect'; 
 export function useAvailableCars() {
     const [cars, setCars] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -12,11 +11,22 @@ export function useAvailableCars() {
             try {
                 const carData = await carMarketplaceContract.getAvailableListings();
                 console.log('CarData: ', carData);  
-                setCars(carData.map(car => ({
-                    tokenId: car.tokenId.toString(),
-                    price: car.price.toString(),  // Convert BigNumber to string for easier handling
-                    isActive: car.isActive
-                })));
+
+                const carsWithDetails = await Promise.all(carData.map(async car => {
+                    const tokenURI = await carTokenContract.tokenURI(car.tokenId);
+                    const response = await fetch(tokenURI);
+                    const data = await response.json();
+                    return {
+                        tokenId: car.tokenId.toString(),
+                        price: car.price.toString(),
+                        isActive: car.isActive,
+                        name: data.name,
+                        image: data.image,
+                        description: data.description
+                    };
+                }));
+
+                setCars(carsWithDetails);
                 setError(null);
             } catch (err) {
                 setError('Failed to fetch cars: ' + err.message);

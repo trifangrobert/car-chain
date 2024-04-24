@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { carMarketplaceContract, carTokenContract } from "../ethersConnect"; 
 
@@ -18,30 +19,29 @@ export function useMyCars(address) {
       setLoading(true);
 
       try {
-        console.log("Fetching cars owned by the boss: ", address);
         const response = await carMarketplaceContract.getCarsOwnedBy(address);
-        console.log("Response: ", response);
         
         const tokenIds = response.map((tokenId) => tokenId.toString());
         
-        console.log("TokenIds: ", tokenIds);
-
-        const statusIds = response.map((tokenId) => carMarketplaceContract.isTokenListed(tokenId));
-        
-        console.log("StatusIds: ", statusIds);
-        
-        // call  function tokenURI(uint256 tokenId) public view override(ERC721, ERC721URIStorage) returns (string memory)
         const tokenURIs = await Promise.all(
           tokenIds.map((tokenId) => carTokenContract.tokenURI(tokenId))
         );
 
-        console.log("TokenURIs: ", tokenURIs);
-        setCars(
-          tokenIds.map((car, index) => ({
-            tokenId: car.toString(),
-            tokenURI: tokenURIs[index],
-          }))
-        );
+        const carsData = await Promise.all(tokenURIs.map(async (uri) => {
+          const response = await fetch(uri);
+          const data = await response.json();
+          return data;
+        }));
+
+        const carsWithDetails = carsData.map((car, index) => ({
+          tokenId: tokenIds[index],
+          tokenURI: tokenURIs[index],
+          name: car.name,
+          image: car.image,
+          description: car.description
+        }));
+        
+        setCars(carsWithDetails);
         setError(null);
       } catch (err) {
         setError("Failed to fetch cars: " + err.message);

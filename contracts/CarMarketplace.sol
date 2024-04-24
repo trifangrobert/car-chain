@@ -66,6 +66,7 @@ contract CarMarketplace is ReentrancyGuard {
         Listing memory listing = listings[tokenId];
         require(listing.isActive, "This car is not for sale");
         require(msg.value >= listing.price, "Insufficient funds sent.");
+        require(msg.sender != listing.seller, "Owner cannot buy his own car.");
 
         address prevOwner = listing.seller;
 
@@ -108,7 +109,6 @@ contract CarMarketplace is ReentrancyGuard {
         return availableListings;
     }
 
-    // this function should return the list of tokenIds owned by the address and the corresponding URI  
     function getCarsOwnedBy(
         address owner
     ) external view returns (uint256[] memory) {
