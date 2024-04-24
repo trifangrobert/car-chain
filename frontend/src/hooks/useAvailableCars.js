@@ -15,7 +15,7 @@ export function useAvailableCars() {
                 setCars(carData.map(car => ({
                     tokenId: car.tokenId.toString(),
                     price: car.price.toString(),  // Convert BigNumber to string for easier handling
-                    isAvailable: car.isAvailable
+                    isActive: car.isActive
                 })));
                 setError(null);
             } catch (err) {

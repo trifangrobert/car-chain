@@ -12,9 +12,11 @@ function AvailableCars() {
             <h1>Available Cars</h1>
             <ul>
                 {cars.map(car => (
-                    <li key={car.tokenId}>
+                    car.isActive && (
+                        <li key={car.tokenId}>
                         Token ID: {car.tokenId}, Price: {car.price} WEI
-                    </li>
+                        </li> 
+                    )
                 ))}
             </ul>
         </div>
