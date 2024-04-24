@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useUser } from "../contexts/UserContext";
 import { useMyCars } from "../hooks/useMyCars";
 import { faCar } from '@fortawesome/free-solid-svg-icons';
@@ -12,6 +12,7 @@ const MyCars = () => {
     const [sellPrice, setSellPrice] = useState('');
     const [showSellPopup, setShowSellPopup] = useState(false);
     const [selectedTokenId, setSelectedTokenId] = useState(null);
+    const [isListedArray, setIsListedArray] = useState([]);
 
     const listCarForSale = async (tokenId, price) => {
         try {
@@ -27,6 +28,25 @@ const MyCars = () => {
         }
     };
 
+    const checkIfListed = async () => {
+        try {
+            const isListedArray = await Promise.all(
+                cars.map(async car => {
+                    try {
+                        return await carMarketplaceContract.isTokenListed(car.tokenId);
+                    } catch (err) {
+                        console.error('Failed to check if car is listed:', err);
+                        return false;
+                    }
+                })
+            );
+            return isListedArray;
+        } catch (err) {
+            console.error('Failed to check if cars are listed:', err);
+            return [];
+        }
+    };
+
     const handleSellPopup = (tokenId) => {
         setSelectedTokenId(tokenId);
         setShowSellPopup(true);
@@ -39,6 +59,33 @@ const MyCars = () => {
             setSellPrice('');
         }
     };
+
+    const cancelListing = async (tokenId) => {
+        try {
+            // Call cancelListing function from carMarketplaceContract
+            const transaction = await carMarketplaceContract.cancelListing(tokenId);
+            await transaction.wait();
+
+            // Refresh data after successful cancellation
+            refresh();
+        } catch (err) {
+            console.error('Failed to cancel listing:', err);
+            // Handle error
+        }
+    };
+
+    useEffect(() => {
+        const fetchListings = async () => {
+            try {
+                const listings = await checkIfListed();
+                setIsListedArray(listings);
+            } catch (err) {
+                console.error('Failed to fetch car listings:', err);
+            }
+        };
+
+        fetchListings();
+    }, [cars]);
 
     return ( 
         <div style={{ textAlign: 'center', marginTop: '0px', backgroundColor: '#ADBBDA', padding: '20px' }}>
@@ -71,25 +118,46 @@ const MyCars = () => {
                     {loading && <div>Loading...</div>}
                     {error && <div>Error: {error}</div>}
                     <ul style={{ listStyleType: 'none', padding: 0 }}>
-                        {cars.map(car => (
+                        {cars.map((car, index) => (
                             <li key={car.tokenId} style={{ marginBottom: '20px', padding: '15px', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)', borderRadius: '5px', background: '#EDE8F5' }}>
                                 <FontAwesomeIcon icon={faCar} style={{ marginRight: '10px' }} />
                                 <strong>Token ID:</strong> {car.tokenId}<br />
-                                <button 
-                                    onClick={() => handleSellPopup(car.tokenId)} 
-                                    style={{ 
-                                        backgroundColor: '#3D52A0', 
-                                        color: 'white', 
-                                        border: 'none', 
-                                        padding: '10px 20px', 
-                                        borderRadius: '5px', 
-                                        fontSize: '16px', 
-                                        cursor: 'pointer',
-                                        marginTop: '10px' 
-                                    }}
-                                >
-                                    Sell
-                                </button>
+                                {isListedArray[index] ? (
+                                    <div>
+                                        Item is on Marketplace <br />
+                                        <button 
+                                            onClick={() => cancelListing(car.tokenId)} 
+                                            style={{ 
+                                                backgroundColor: '#3D52A0', 
+                                                color: 'white', 
+                                                border: 'none', 
+                                                padding: '10px 20px', 
+                                                borderRadius: '5px', 
+                                                fontSize: '16px', 
+                                                cursor: 'pointer',
+                                                marginTop: '10px' 
+                                            }}
+                                        >
+                                            Cancel Listing
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <button 
+                                        onClick={() => handleSellPopup(car.tokenId)} 
+                                        style={{ 
+                                            backgroundColor: '#3D52A0', 
+                                            color: 'white', 
+                                            border: 'none', 
+                                            padding: '10px 20px', 
+                                            borderRadius: '5px', 
+                                            fontSize: '16px', 
+                                            cursor: 'pointer',
+                                            marginTop: '10px' 
+                                        }}
+                                    >
+                                        Sell
+                                    </button>
+                                )}
                             </li>
                         ))}
                     </ul>

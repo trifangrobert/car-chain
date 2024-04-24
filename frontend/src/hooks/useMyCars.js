@@ -25,6 +25,10 @@ export function useMyCars(address) {
         const tokenIds = response.map((tokenId) => tokenId.toString());
         
         console.log("TokenIds: ", tokenIds);
+
+        const statusIds = response.map((tokenId) => carMarketplaceContract.isTokenListed(tokenId));
+        
+        console.log("StatusIds: ", statusIds);
         
         // call  function tokenURI(uint256 tokenId) public view override(ERC721, ERC721URIStorage) returns (string memory)
         const tokenURIs = await Promise.all(
