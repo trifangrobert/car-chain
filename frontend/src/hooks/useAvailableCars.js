@@ -10,21 +10,26 @@ export function useAvailableCars() {
             setLoading(true);
             try {
                 const carData = await carMarketplaceContract.getAvailableListings();
-                console.log('CarData: ', carData);  
+                console.log('CarData: ', carData);
 
-                const carsWithDetails = await Promise.all(carData.map(async car => {
-                    const tokenURI = await carTokenContract.tokenURI(car.tokenId);
-                    const response = await fetch(tokenURI);
-                    const data = await response.json();
-                    return {
-                        tokenId: car.tokenId.toString(),
-                        price: car.price.toString(),
-                        isActive: car.isActive,
-                        name: data.name,
-                        image: data.image,
-                        description: data.description
-                    };
-                }));
+                // filter out cars with tokenId 0, which is invalid
+                const carsWithDetails = await Promise.all(
+                    carData.filter(car => car.tokenId.toString() != 0).map(async car => {
+                        console.log('Car: ', car);
+                        console.log('Car token id: ', car.tokenId);
+                        const tokenURI = await carTokenContract.tokenURI(car.tokenId);
+                        const response = await fetch(tokenURI);
+                        const data = await response.json();
+                        return {
+                            tokenId: car.tokenId,
+                            price: car.price,
+                            isActive: car.isActive,
+                            name: data.name,
+                            image: data.image,
+                            description: data.description
+                        };
+                    })
+                );
 
                 setCars(carsWithDetails);
                 setError(null);

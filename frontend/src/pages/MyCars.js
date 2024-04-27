@@ -19,7 +19,6 @@ const MyCars = () => {
             const transaction = await carMarketplaceContract.listCarForSale(tokenId, price);
             await transaction.wait();
 
-            refresh();
         } catch (err) {
             console.error('Failed to list car for sale:', err);
         }
