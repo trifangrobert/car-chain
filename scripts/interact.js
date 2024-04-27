@@ -11,7 +11,6 @@ async function interact() {
 
     let users = [owner, user1, user2, user3, user4];
 
-
     const carTokenAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
     const CarToken = await ethers.getContractFactory("CarToken");
     const carToken = CarToken.attach(carTokenAddress);
@@ -20,15 +19,23 @@ async function interact() {
     const CarMarketplace = await ethers.getContractFactory("CarMarketplace");
     const carMarketplace = CarMarketplace.attach(carMarketplaceAddress);
 
-    // Minting a new token
-    console.log("Minting new tokens...");
+    // Ensure correct approval setup
+    console.log("Setting up approvals...");
     for (let i = 1; i < 5; i++) {
+        console.log(`Setting approval for user ${i}...`);
+        let approveTx = await carToken.connect(users[i]).setApprovalForAll(carMarketplace.address, true);
+        await approveTx.wait();
+    }
+
+    // create a new token
+    console.log("Creating a new tokens...");
+    for (let i = 1; i < 5; i++) {
+        console.log(`Creating token ${i}...`);
         let tokenId = i;
         let uri = `http://localhost:3001/token/${tokenId}`;
-        let mintTx = await carToken.connect(owner).safeMint(users[i].address, tokenId, uri);
+        let mintTx = await carMarketplace.connect(users[i]).createCar(uri);
         await mintTx.wait();
     }
-    console.log("Tokens minted successfully!");
 
     // check token owner
     for (let i = 1; i < 5; i++) {
@@ -37,13 +44,8 @@ async function interact() {
         console.log(tokenOwner);
         const tokenURI = await carToken.tokenURI(i);
         console.log(tokenURI);
-
-        // set approval for marketplace
-        console.log(`Approval set for token ${i} by ${users[i].address}.`)
-        const approvalAllTx = await carToken.connect(users[i]).setApprovalForAll(carMarketplace.address, true);
-        await approvalAllTx.wait();
     }
-    
+
     // call getAvailableListings
     console.log("Getting available listings...");
     let listings = await carMarketplace.getAvailableListings();
