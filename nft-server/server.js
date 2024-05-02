@@ -39,6 +39,18 @@ app.get('/token/:id', (req, res) => {
     }
 });
 
+app.post('/token/new', (req, res) => {
+    const newCar = {
+        name: req.body.name,
+        image: req.body.image,
+        description: req.body.description
+    };
+    const newTokenId = Object.keys(cars).length + 1;
+    cars[newTokenId] = newCar;
+    res.json(newCar);
+});
+
+
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
 });
