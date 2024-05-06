@@ -8,22 +8,41 @@ import { Link } from 'react-router-dom';
 
 const MyCars = () => {
     const userAddress = useUser();
-    const { cars, loading, error, refresh } = useMyCars(userAddress);
+    const { cars, loading, error} = useMyCars(userAddress);
     const [sellPrice, setSellPrice] = useState('');
-    const [showSellPopup, setShowSellPopup] = useState(false);
+    const [showEnterPricePopup, setShowEnterPricePopup] = useState(false);
+    const [showGasFeePopup, setShowGasFeePopup] = useState(false);
+    const [showUpdateGasFeePopup, setShowUpdateGasFeePopup] = useState(false);
+    const [showCancelGasFeePopup, setShowCancelGasFeePopup] = useState(false);
     const [selectedTokenId, setSelectedTokenId] = useState(null);
     const [isListedArray, setIsListedArray] = useState([]);
-
-    const listCarForSale = async (tokenId, price) => {
+    const [gasFee, setGasFee] = useState(null);
+    
+    const estimateGas = async (tokenId, price, type) => {
         try {
-            const transaction = await carMarketplaceContract.listCarForSale(tokenId, price);
-            await transaction.wait();
+            var gasEstimation = 0;
+            console.log(tokenId)
+            console.log(price)
+            if (type === 0) {
+                gasEstimation = await carMarketplaceContract.listCarForSale.estimateGas(tokenId, price);
+            }
+            else if (type === 1){
+                gasEstimation = await carMarketplaceContract.cancelListing.estimateGas(tokenId);
+            }
+            else {
+                gasEstimation = await carMarketplaceContract.updateCarPrice.estimateGas(tokenId, price);
+            }
 
+            if (gasEstimation == null){
+                gasEstimation = 0;
+            }
+            console.log(gasEstimation)
+            setGasFee(gasEstimation);
         } catch (err) {
-            console.error('Failed to list car for sale:', err);
+            console.error('Failed to estimate gas:', err);
         }
     };
-
+    
     const checkIfListed = async () => {
         try {
             const isListedArray = await Promise.all(
@@ -45,39 +64,71 @@ const MyCars = () => {
 
     const handleSellPopup = (tokenId) => {
         setSelectedTokenId(tokenId);
-        setShowSellPopup(true);
+        setShowEnterPricePopup(true);
     };
 
-    const handleSellConfirm = () => {
-        if (sellPrice && selectedTokenId) {
-            listCarForSale(selectedTokenId, sellPrice);
-            setShowSellPopup(false);
-            setSellPrice('');
-        }
-    };
-
-    const handleUpdateListing = (tokenId) => {
-        const newPrice = prompt("Enter the new price in WEI:");
-        if (newPrice !== null) {
-            updateListing(tokenId, newPrice);
+    const handleSellConfirm = async () => {
+        try {
+            if (sellPrice && selectedTokenId) {
+                await estimateGas(selectedTokenId, sellPrice, 0); // Estimate gas fees
+                setShowEnterPricePopup(false); // Close EnterPricePopup
+                setShowGasFeePopup(true); // Show GasFeePopup
+            }
+        } catch (err) {
+            console.error('Failed to initiate sell transaction:', err);
         }
     };
     
-    const updateListing = async (tokenId, price) => {
+    // Function to confirm the sale after reviewing transaction details
+    const confirmSellTransaction = async () => {
         try {
-            const transaction = await carMarketplaceContract.updateCarPrice(tokenId, price);
+            const transaction = await carMarketplaceContract.listCarForSale(selectedTokenId, sellPrice);
             await transaction.wait();
+            setShowGasFeePopup(false);
+            setSellPrice('');
+            setSelectedTokenId(null);
+            setGasFee(null);
+        } catch (err) {
+            console.error('Failed to list car for sale:', err);
+        }
+    };
+    
+    const handleUpdateListing = async (tokenId) => {
+        const newPrice = prompt("Enter the new price in WEI:");
+        if (newPrice !== null) {
+            setSellPrice(newPrice)
+            setSelectedTokenId(tokenId);
+            await estimateGas(tokenId, newPrice, 2); // Estimate gas fees
+            setShowUpdateGasFeePopup(true);
+        }
+    };
+
+    const confirmUpdateListingTransaction = async () => {
+        try {
+            const transaction = await carMarketplaceContract.updateCarPrice(selectedTokenId, sellPrice);
+            await transaction.wait();
+            setShowUpdateGasFeePopup(false);
+            setSellPrice('');
+            setSelectedTokenId(null);
+            setGasFee(null);
         } catch (err) {
             console.error('Failed to update listing:', err);
         }
     };    
 
-    const cancelListing = async (tokenId) => {
-        try {
-            const transaction = await carMarketplaceContract.cancelListing(tokenId);
-            await transaction.wait();
+    const handleCancelListing = async (tokenId) => {
+        setSelectedTokenId(tokenId);
+        await estimateGas(tokenId, 0, 1); // Estimate gas fees
+        setShowCancelGasFeePopup(true);
+    };
 
-            refresh();
+    const confirmCancelListingTransaction = async () => {
+        try {
+            const transaction = await carMarketplaceContract.cancelListing(selectedTokenId);
+            await transaction.wait();
+            setShowCancelGasFeePopup(false);
+            setSelectedTokenId(null);
+            setGasFee(null);
         } catch (err) {
             console.error('Failed to cancel listing:', err);
         }
@@ -153,7 +204,7 @@ const MyCars = () => {
                                             Update Listing
                                         </button>
                                         <button 
-                                            onClick={() => cancelListing(car.tokenId)} 
+                                            onClick={() => handleCancelListing(car.tokenId)} 
                                             style={{ 
                                                 backgroundColor: '#3D52A0', 
                                                 color: 'white', 
@@ -192,7 +243,7 @@ const MyCars = () => {
             ) : (
                 <div>Please connect your wallet</div>
             )}
-            {showSellPopup && (
+            {showEnterPricePopup && (
                 <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', zIndex: 999 }}>
                     <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: '#fff', padding: '20px', borderRadius: '5px', boxShadow: '0 0 10px rgba(0, 0, 0, 0.3)' }}>
                         <h2>Enter Sell Price</h2>
@@ -218,7 +269,118 @@ const MyCars = () => {
                             Confirm
                         </button>
                         <button 
-                            onClick={() => setShowSellPopup(false)} 
+                            onClick={() => setShowEnterPricePopup(false)} 
+                            style={{ 
+                                backgroundColor: '#3D52A0', 
+                                color: 'white', 
+                                border: 'none', 
+                                padding: '10px 20px', 
+                                borderRadius: '5px', 
+                                fontSize: '16px', 
+                                cursor: 'pointer',
+                                marginLeft: '10px'
+                            }}
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            )}
+            {showGasFeePopup && (
+                <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', zIndex: 999 }}>
+                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: '#fff', padding: '20px', borderRadius: '5px', boxShadow: '0 0 10px rgba(0, 0, 0, 0.3)' }}>
+                        <h2>Transaction Details</h2>
+                        <p>Estimated Gas Fee: {gasFee.toString()} WEI</p>
+                        <button 
+                            onClick={confirmSellTransaction} 
+                            style={{ 
+                                backgroundColor: '#3D52A0', 
+                                color: 'white', 
+                                border: 'none', 
+                                padding: '10px 20px', 
+                                borderRadius: '5px', 
+                                fontSize: '16px', 
+                                cursor: 'pointer' 
+                            }}
+                        >
+                            Confirm
+                        </button>
+                        <button 
+                            onClick={() => setShowGasFeePopup(false)} 
+                            style={{ 
+                                backgroundColor: '#3D52A0', 
+                                color: 'white', 
+                                border: 'none', 
+                                padding: '10px 20px', 
+                                borderRadius: '5px', 
+                                fontSize: '16px', 
+                                cursor: 'pointer',
+                                marginLeft: '10px'
+                            }}
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            )}
+             {showUpdateGasFeePopup && (
+                <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', zIndex: 999 }}>
+                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: '#fff', padding: '20px', borderRadius: '5px', boxShadow: '0 0 10px rgba(0, 0, 0, 0.3)' }}>
+                        <h2>Transaction Details</h2>
+                        <p>Estimated Gas Fee: {gasFee.toString()} WEI</p>
+                        <button 
+                            onClick={confirmUpdateListingTransaction} 
+                            style={{ 
+                                backgroundColor: '#3D52A0', 
+                                color: 'white', 
+                                border: 'none', 
+                                padding: '10px 20px', 
+                                borderRadius: '5px', 
+                                fontSize: '16px', 
+                                cursor: 'pointer' 
+                            }}
+                        >
+                            Confirm
+                        </button>
+                        <button 
+                            onClick={() => setShowUpdateGasFeePopup(false)} 
+                            style={{ 
+                                backgroundColor: '#3D52A0', 
+                                color: 'white', 
+                                border: 'none', 
+                                padding: '10px 20px', 
+                                borderRadius: '5px', 
+                                fontSize: '16px', 
+                                cursor: 'pointer',
+                                marginLeft: '10px'
+                            }}
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            )}
+            {showCancelGasFeePopup && (
+                <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', zIndex: 999 }}>
+                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: '#fff', padding: '20px', borderRadius: '5px', boxShadow: '0 0 10px rgba(0, 0, 0, 0.3)' }}>
+                        <h2>Transaction Details</h2>
+                        <p>Estimated Gas Fee: {gasFee.toString()} WEI</p>
+                        <button 
+                            onClick={confirmCancelListingTransaction} 
+                            style={{ 
+                                backgroundColor: '#3D52A0', 
+                                color: 'white', 
+                                border: 'none', 
+                                padding: '10px 20px', 
+                                borderRadius: '5px', 
+                                fontSize: '16px', 
+                                cursor: 'pointer' 
+                            }}
+                        >
+                            Confirm
+                        </button>
+                        <button 
+                            onClick={() => setShowCancelGasFeePopup(false)} 
                             style={{ 
                                 backgroundColor: '#3D52A0', 
                                 color: 'white', 
