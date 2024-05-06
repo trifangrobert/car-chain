@@ -56,6 +56,22 @@ const MyCars = () => {
         }
     };
 
+    const handleUpdateListing = (tokenId) => {
+        const newPrice = prompt("Enter the new price in WEI:");
+        if (newPrice !== null) {
+            updateListing(tokenId, newPrice);
+        }
+    };
+    
+    const updateListing = async (tokenId, price) => {
+        try {
+            const transaction = await carMarketplaceContract.updateCarPrice(tokenId, price);
+            await transaction.wait();
+        } catch (err) {
+            console.error('Failed to update listing:', err);
+        }
+    };    
+
     const cancelListing = async (tokenId) => {
         try {
             const transaction = await carMarketplaceContract.cancelListing(tokenId);
@@ -113,13 +129,29 @@ const MyCars = () => {
                         {cars.map((car, index) => (
                             <li key={car.tokenId} style={{ marginBottom: '20px', padding: '15px', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)', borderRadius: '5px', background: '#EDE8F5' }}>
                                 <FontAwesomeIcon icon={faCar} style={{ marginRight: '10px' }} />
-                                <strong>Token ID:</strong> {car.tokenId}<br />
+                                <strong>Token ID:</strong> {car.tokenId.toString()}<br />
                                 <strong>Name:</strong> {car.name}<br />
                                 <strong>Image:</strong> <img src={car.image} alt={car.name} style={{ maxWidth: '200px' }} /><br />
                                 <strong>Description:</strong> {car.description}<br />
                                 {isListedArray[index] ? (
                                     <div>
-                                        Item is on Marketplace <br />
+                                        Item is on Marketplace for {car.price.toString()} WEI. <br />
+                                        <button 
+                                            onClick={() => handleUpdateListing(car.tokenId)} 
+                                            style={{ 
+                                                backgroundColor: '#3D52A0', 
+                                                color: 'white', 
+                                                border: 'none', 
+                                                padding: '10px 20px', 
+                                                borderRadius: '5px', 
+                                                fontSize: '16px', 
+                                                cursor: 'pointer',
+                                                marginTop: '10px',
+                                                marginRight: '10px' 
+                                            }}
+                                        >
+                                            Update Listing
+                                        </button>
                                         <button 
                                             onClick={() => cancelListing(car.tokenId)} 
                                             style={{ 

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { carMarketplaceContract, carTokenContract } from "../ethersConnect"; 
 
@@ -33,12 +32,23 @@ export function useMyCars(address) {
           return data;
         }));
 
-        const carsWithDetails = carsData.map((car, index) => ({
-          tokenId: tokenIds[index],
-          tokenURI: tokenURIs[index],
-          name: car.name,
-          image: car.image,
-          description: car.description
+        const carsWithDetails = await Promise.all(tokenIds.map(async (tokenId, index) => {
+          const isListed = await carMarketplaceContract.isTokenListed(tokenId);
+          const car = {
+            tokenId: tokenId,
+            tokenURI: tokenURIs[index],
+            name: carsData[index].name,
+            image: carsData[index].image,
+            description: carsData[index].description,
+            isListed: isListed
+          };
+
+          if (isListed) {
+            const listing = await carMarketplaceContract.getListing(tokenId);
+            car.price = listing.price;
+          }
+
+          return car;
         }));
         
         setCars(carsWithDetails);
