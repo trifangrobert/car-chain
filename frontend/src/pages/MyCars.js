@@ -70,9 +70,9 @@ const MyCars = () => {
     const handleSellConfirm = async () => {
         try {
             if (sellPrice && selectedTokenId) {
-                await estimateGas(selectedTokenId, sellPrice, 0); // Estimate gas fees
-                setShowEnterPricePopup(false); // Close EnterPricePopup
-                setShowGasFeePopup(true); // Show GasFeePopup
+                await estimateGas(selectedTokenId, sellPrice, 0);
+                setShowEnterPricePopup(false); 
+                setShowGasFeePopup(true);
             }
         } catch (err) {
             console.error('Failed to initiate sell transaction:', err);
@@ -98,7 +98,7 @@ const MyCars = () => {
         if (newPrice !== null) {
             setSellPrice(newPrice)
             setSelectedTokenId(tokenId);
-            await estimateGas(tokenId, newPrice, 2); // Estimate gas fees
+            await estimateGas(tokenId, newPrice, 2);
             setShowUpdateGasFeePopup(true);
         }
     };
@@ -118,7 +118,7 @@ const MyCars = () => {
 
     const handleCancelListing = async (tokenId) => {
         setSelectedTokenId(tokenId);
-        await estimateGas(tokenId, 0, 1); // Estimate gas fees
+        await estimateGas(tokenId, 0, 1);
         setShowCancelGasFeePopup(true);
     };
 

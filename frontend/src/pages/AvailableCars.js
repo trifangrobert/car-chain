@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
+import { useUser } from "../contexts/UserContext";
 import { useAvailableCars } from '../hooks/useAvailableCars'; 
 import { faCar, faMoneyBill } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { carMarketplaceContract } from '../ethersConnect'; 
+import { carTokenContract } from '../ethersConnect'; 
 import { Link } from 'react-router-dom';
 
 function AvailableCars() {
+    const userAddress = useUser();
     const { cars, loading, error } = useAvailableCars();
     const [buyError, setBuyError] = useState(null);
     const [gasFee, setGasFee] = useState(null);
@@ -15,35 +18,38 @@ function AvailableCars() {
 
     const estimateGas = async (tokenId, price) => {
         try {
-            console.log(tokenId)
+            const owner = await carTokenContract.ownerOf(tokenId);
+
+            if (owner === userAddress) {
+                setBuyError('You cannot buy your own car.');
+                setTimeout(() => {
+                    setBuyError(null); // Clear the error after a certain time
+                }, 3000); // Adjust the time as needed
+                return false; // Exit the function early
+            }
             
             var gasEstimation = await carMarketplaceContract.buyCar.estimateGas(tokenId, { value: price });
             
-            console.log('here 2')
-
-            if (gasEstimation == null){
-                gasEstimation = 0;
-            }
-
-            console.log(gasEstimation)
+            console.log('here 2');
+    
+            console.log(gasEstimation);
             setGasFee(gasEstimation);
+
+            return true;
         } catch (err) {      
             console.error('Failed to estimate gas:', err);
-            setBuyError('You cannot buy your own car.');
-            setTimeout(() => {
-                setBuyError(null); // Clear the error after a certain time
-            }, 3000); // Adjust the time as needed
         }
     };
 
     const handleBuyConfirm = async (tokenId, price) => {
         try {
             if (price && tokenId) {
-                console.log('here 1')
-                await estimateGas(tokenId, price); // Estimate gas fees
-                setBuyPrice(price);
-                setSelectedTokenId(tokenId);
-                setShowGasFeePopup(true); // Show GasFeePopup
+                var result = await estimateGas(tokenId, price); // Estimate gas fees
+                if (result){
+                    setBuyPrice(price);
+                    setSelectedTokenId(tokenId);
+                    setShowGasFeePopup(true); // Show GasFeePopup
+                }
             }
         } catch (err) {
             console.error('Failed to initiate buy transaction:', err);
