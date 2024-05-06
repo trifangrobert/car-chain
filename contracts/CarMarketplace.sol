@@ -30,10 +30,33 @@ contract CarMarketplace is ReentrancyGuard {
     );
     event ListingCancelled(uint256 indexed tokenId, address indexed seller);
 
+    event CarCreated(
+        uint256 indexed tokenId,
+        address indexed seller
+    );
+
+    event CarURIUpdated(
+        uint256 indexed tokenId,
+        string uri
+    );
+
+    event CarPriceUpdated(
+        uint256 indexed tokenId,
+        uint256 price
+    );
+
     modifier onlyTokenOwner(uint256 tokenId) {
         require(
             carToken.ownerOf(tokenId) == msg.sender,
             "Caller is not the owner of the token"
+        );
+        _;
+    }
+
+    modifier notTokenOwner(uint256 tokenId) {
+        require(
+            carToken.ownerOf(tokenId) != msg.sender,
+            "Caller is the owner of the token"
         );
         _;
     }
@@ -46,23 +69,58 @@ contract CarMarketplace is ReentrancyGuard {
         listings[tokenId].isActive = status;
     }
 
+    function createCar(
+        string memory uri
+    ) external {
+        // mint a new token
+        uint256 tokenId = carToken.getTotalTokens() + 1;
+        carToken.safeMint(msg.sender, tokenId, uri);
+
+        // add the token to the listings
+        listings[tokenId] = Listing({
+            tokenId: tokenId,
+            seller: payable(msg.sender),
+            price: 0,
+            isActive: false
+        });
+
+        emit CarCreated(tokenId, msg.sender);
+    }    
+
+    function updateCarURI(
+        uint256 tokenId,
+        string memory uri
+    ) external onlyTokenOwner(tokenId) {
+        carToken.setTokenURI(tokenId, uri);
+
+        emit CarURIUpdated(tokenId, uri);
+    }
+
+    function updateCarPrice(
+        uint256 tokenId,
+        uint256 price
+    ) external onlyTokenOwner(tokenId) {
+        require(isTokenListed(tokenId), "This car is not listed for sale");
+
+        listings[tokenId].price = price;
+
+        emit CarPriceUpdated(tokenId, price);
+    }
+
+
     function listCarForSale(
         uint256 tokenId,
         uint256 price
     ) external onlyTokenOwner(tokenId) {
         require(!isTokenListed(tokenId), "This car is already listed for sale");
 
-        listings[tokenId] = Listing({
-            tokenId: tokenId,
-            seller: payable(msg.sender),
-            price: price,
-            isActive: true
-        });
+        listings[tokenId].price = price;
+        _updateListingStatus(tokenId, true);
 
         emit CarListed(tokenId, msg.sender, price);
     }
 
-    function buyCar(uint256 tokenId) external payable nonReentrant {
+    function buyCar(uint256 tokenId) external payable notTokenOwner(tokenId) nonReentrant  {
         Listing memory listing = listings[tokenId];
         require(listing.isActive, "This car is not for sale");
         require(msg.value >= listing.price, "Insufficient funds sent.");
@@ -94,21 +152,27 @@ contract CarMarketplace is ReentrancyGuard {
     }
 
     function getAvailableListings() external view returns (Listing[] memory) {
-        Listing[] memory availableListings = new Listing[](
-            carToken.getTotalTokens()
-        );
-        uint256 counter = 0;
+    uint256 totalListings = carToken.getTotalTokens();
+    Listing[] memory tempArray = new Listing[](totalListings);
+    uint256 counter = 0;
 
-        for (uint256 i = 1; i <= carToken.getTotalTokens(); i++) {
-            if (listings[i].isActive) {
-                availableListings[counter] = listings[i];
-                counter++;
-            }
+    for (uint256 i = 1; i <= totalListings; i++) {
+        if (listings[i].isActive) {
+            tempArray[counter] = listings[i];
+            counter++;
         }
-
-        return availableListings;
     }
 
+    Listing[] memory availableListings = new Listing[](counter);
+    for (uint256 j = 0; j < counter; j++) {
+        availableListings[j] = tempArray[j];
+    }
+
+    return availableListings;
+}
+
+
+    // this function should return the list of tokenIds owned by the address and the corresponding URI  
     function getCarsOwnedBy(
         address owner
     ) external view returns (uint256[] memory) {
