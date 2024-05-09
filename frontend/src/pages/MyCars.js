@@ -14,9 +14,11 @@ const MyCars = () => {
     const [showGasFeePopup, setShowGasFeePopup] = useState(false);
     const [showUpdateGasFeePopup, setShowUpdateGasFeePopup] = useState(false);
     const [showCancelGasFeePopup, setShowCancelGasFeePopup] = useState(false);
+    const [showLoadingPopup, setShowLoadingPopup] = useState(false);
     const [selectedTokenId, setSelectedTokenId] = useState(null);
     const [isListedArray, setIsListedArray] = useState([]);
     const [gasFee, setGasFee] = useState(null);
+    const [anyError, setAnyError] = useState(null);
     
     const estimateGas = async (tokenId, price, type) => {
         try {
@@ -40,6 +42,11 @@ const MyCars = () => {
             setGasFee(gasEstimation);
         } catch (err) {
             console.error('Failed to estimate gas:', err);
+
+            setAnyError(err['info']['error']['message']);
+            setTimeout(() => {
+                setAnyError(null);
+            }, 3000);
         }
     };
     
@@ -58,6 +65,11 @@ const MyCars = () => {
             return isListedArray;
         } catch (err) {
             console.error('Failed to check if cars are listed:', err);
+
+            setAnyError(err['info']['error']['message']);
+            setTimeout(() => {
+                setAnyError(null);
+            }, 3000);
             return [];
         }
     };
@@ -76,20 +88,39 @@ const MyCars = () => {
             }
         } catch (err) {
             console.error('Failed to initiate sell transaction:', err);
+
+            setAnyError(err['info']['error']['message']);
+            setTimeout(() => {
+                setAnyError(null);
+            }, 3000);
         }
     };
     
     // Function to confirm the sale after reviewing transaction details
     const confirmSellTransaction = async () => {
         try {
+            setShowGasFeePopup(false);
+            setShowLoadingPopup(true);
+
             const transaction = await carMarketplaceContract.listCarForSale(selectedTokenId, sellPrice);
             await transaction.wait();
-            setShowGasFeePopup(false);
+
+            setShowLoadingPopup(false);
+            window.location.reload();
+
             setSellPrice('');
             setSelectedTokenId(null);
             setGasFee(null);
         } catch (err) {
+            setShowLoadingPopup(false);
+            window.location.reload();
+
             console.error('Failed to list car for sale:', err);
+
+            setAnyError(err['info']['error']['message']);
+            setTimeout(() => {
+                setAnyError(null);
+            }, 3000);
         }
     };
     
@@ -105,14 +136,27 @@ const MyCars = () => {
 
     const confirmUpdateListingTransaction = async () => {
         try {
+            setShowUpdateGasFeePopup(false);
+            setShowLoadingPopup(true);
+
             const transaction = await carMarketplaceContract.updateCarPrice(selectedTokenId, sellPrice);
             await transaction.wait();
-            setShowUpdateGasFeePopup(false);
+
+            setShowLoadingPopup(false);
+            window.location.reload();
+
             setSellPrice('');
             setSelectedTokenId(null);
             setGasFee(null);
         } catch (err) {
+            setShowLoadingPopup(false);
+
             console.error('Failed to update listing:', err);
+
+            setAnyError(err['info']['error']['message']);
+            setTimeout(() => {
+                setAnyError(null);
+            }, 3000);
         }
     };    
 
@@ -124,13 +168,26 @@ const MyCars = () => {
 
     const confirmCancelListingTransaction = async () => {
         try {
+            setShowCancelGasFeePopup(false);
+            setShowLoadingPopup(true);
+
             const transaction = await carMarketplaceContract.cancelListing(selectedTokenId);
             await transaction.wait();
-            setShowCancelGasFeePopup(false);
+            
+            setShowLoadingPopup(false);
+            window.location.reload();
+
             setSelectedTokenId(null);
             setGasFee(null);
         } catch (err) {
+            setShowLoadingPopup(false);
+
             console.error('Failed to cancel listing:', err);
+
+            setAnyError(err['info']['error']['message']);
+            setTimeout(() => {
+                setAnyError(null);
+            }, 3000);
         }
     };
 
@@ -397,7 +454,50 @@ const MyCars = () => {
                     </div>
                 </div>
             )}
+
+            {showLoadingPopup && (
+                <div style={{ 
+                    position: 'fixed', 
+                    top: '0', 
+                    left: '0', 
+                    width: '100%', 
+                    height: '100%', 
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent black background
+                    display: 'flex', 
+                    justifyContent: 'center', 
+                    alignItems: 'center', 
+                    zIndex: 9999 
+                }}>
+                    <div style={{ 
+                        backgroundColor: '#ADBBDA', // Light blue background color
+                        padding: '40px', 
+                        borderRadius: '10px', 
+                        boxShadow: '0 0 10px rgba(0, 0, 0, 0.5)', 
+                        textAlign: 'center' 
+                    }}>
+                        <h2 style={{ color: '#3D52A0' }}>Loading...</h2>
+                    </div>
+                </div>
+            )}  
+
+            {anyError && (
+                 <div style={{
+                    position: 'fixed',
+                    top: '20px',
+                    left: '20px',
+                    backgroundColor: '#FFDADA', // reddish color
+                    padding: '10px',
+                    borderRadius: '5px',
+                    boxShadow: '0 2px 5px rgba(0, 0, 0, 0.1)',
+                    zIndex: '9999'
+                }}>
+                    <p>{anyError}</p>
+                </div>
+            )}
+
+                                        
         </div>
+
     );
 }
  
