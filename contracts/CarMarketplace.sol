@@ -30,6 +30,12 @@ contract CarMarketplace is ReentrancyGuard {
     );
     event ListingCancelled(uint256 indexed tokenId, address indexed seller);
 
+    event CarCreated(uint256 indexed tokenId, address indexed seller);
+
+    event CarURIUpdated(uint256 indexed tokenId, string uri);
+
+    event CarPriceUpdated(uint256 indexed tokenId, uint256 price);
+
     modifier onlyTokenOwner(uint256 tokenId) {
         require(
             carToken.ownerOf(tokenId) == msg.sender,
@@ -38,12 +44,74 @@ contract CarMarketplace is ReentrancyGuard {
         _;
     }
 
+    modifier notTokenOwner(uint256 tokenId) {
+        require(
+            carToken.ownerOf(tokenId) != msg.sender,
+            "Caller is the owner of the token"
+        );
+        _;
+    }
+
     constructor(address _carTokenAddress) {
         carToken = CarToken(_carTokenAddress);
     }
 
-    function _updateListingStatus(uint256 tokenId, bool status) private {
-        listings[tokenId].isActive = status;
+    fallback() external payable {
+        
+    }
+
+    receive() external payable {
+        
+    }
+
+    function supportsInterface(bytes4 interfaceID) external pure returns (bool) {
+        return interfaceID == type(ERC721).interfaceId;
+    }
+
+    function decimals() public pure returns (uint8) {
+        return 18;
+    }
+
+
+
+    // function _updateListingStatus(uint256 tokenId, bool status) private {
+    //     listings[tokenId].isActive = status;
+    // }
+
+    function createCar(string memory uri) external {
+        // mint a new token
+        uint256 tokenId = carToken.getTotalTokens() + 1;
+        carToken.safeMint(msg.sender, tokenId, uri);
+
+        // add the token to the listings
+        listings[tokenId] = Listing({
+            tokenId: tokenId,
+            seller: payable(msg.sender),
+            price: 0,
+            isActive: false
+        });
+
+        emit CarCreated(tokenId, msg.sender);
+    }
+
+    function updateCarURI(
+        uint256 tokenId,
+        string memory uri
+    ) external onlyTokenOwner(tokenId) {
+        carToken.setTokenURI(tokenId, uri);
+
+        emit CarURIUpdated(tokenId, uri);
+    }
+
+    function updateCarPrice(
+        uint256 tokenId,
+        uint256 price
+    ) external onlyTokenOwner(tokenId) {
+        require(isTokenListed(tokenId), "This car is not listed for sale");
+
+        listings[tokenId].price = price;
+
+        emit CarPriceUpdated(tokenId, price);
     }
 
     function listCarForSale(
@@ -51,18 +119,19 @@ contract CarMarketplace is ReentrancyGuard {
         uint256 price
     ) external onlyTokenOwner(tokenId) {
         require(!isTokenListed(tokenId), "This car is already listed for sale");
+        require(price > 0, "Price must be greater than 0");
+        require(carToken.ownerOf(tokenId) == msg.sender, "Caller is not the owner of the token");
+        require(carToken.ownerOf(tokenId) == listings[tokenId].seller, "Caller is not the owner of the token");
 
-        listings[tokenId] = Listing({
-            tokenId: tokenId,
-            seller: payable(msg.sender),
-            price: price,
-            isActive: true
-        });
+        listings[tokenId].price = price;
+        listings[tokenId].isActive = true;
 
         emit CarListed(tokenId, msg.sender, price);
     }
 
-    function buyCar(uint256 tokenId) external payable nonReentrant {
+    function buyCar(
+        uint256 tokenId
+    ) external payable notTokenOwner(tokenId) nonReentrant {
         Listing memory listing = listings[tokenId];
         require(listing.isActive, "This car is not for sale");
         require(msg.value >= listing.price, "Insufficient funds sent.");
@@ -71,7 +140,7 @@ contract CarMarketplace is ReentrancyGuard {
 
         carToken.safeTransferFrom(listing.seller, msg.sender, tokenId);
         listing.seller.transfer(msg.value);
-        _updateListingStatus(tokenId, false);
+        listings[tokenId].isActive = false;
         listings[tokenId].seller = payable(msg.sender);
 
         emit CarSold(tokenId, prevOwner, msg.sender, listing.price);
@@ -81,7 +150,7 @@ contract CarMarketplace is ReentrancyGuard {
         Listing memory listing = listings[tokenId];
         require(listing.isActive, "This car is not for sale");
 
-        _updateListingStatus(tokenId, false);
+        listings[tokenId].isActive = false;
 
         emit ListingCancelled(tokenId, msg.sender);
     }
@@ -93,22 +162,26 @@ contract CarMarketplace is ReentrancyGuard {
     }
 
     function getAvailableListings() external view returns (Listing[] memory) {
-        Listing[] memory availableListings = new Listing[](
-            carToken.getTotalTokens()
-        );
+        uint256 totalListings = carToken.getTotalTokens();
+        Listing[] memory tempArray = new Listing[](totalListings);
         uint256 counter = 0;
 
-        for (uint256 i = 1; i <= carToken.getTotalTokens(); i++) {
+        for (uint256 i = 1; i <= totalListings; i++) {
             if (listings[i].isActive) {
-                availableListings[counter] = listings[i];
+                tempArray[counter] = listings[i];
                 counter++;
             }
+        }
+
+        Listing[] memory availableListings = new Listing[](counter);
+        for (uint256 j = 0; j < counter; j++) {
+            availableListings[j] = tempArray[j];
         }
 
         return availableListings;
     }
 
-    // this function should return the list of tokenIds owned by the address and the corresponding URI  
+    // this function should return the list of tokenIds owned by the address and the corresponding URI
     function getCarsOwnedBy(
         address owner
     ) external view returns (uint256[] memory) {
@@ -123,7 +196,7 @@ contract CarMarketplace is ReentrancyGuard {
             }
         }
 
-        uint256[] memory ownedCars = new uint256[](count);        
+        uint256[] memory ownedCars = new uint256[](count);
         for (uint256 i = 0; i < count; i++) {
             ownedCars[i] = tempCars[i];
         }

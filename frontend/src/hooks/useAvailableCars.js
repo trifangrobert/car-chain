@@ -10,12 +10,13 @@ export function useAvailableCars() {
         const fetchCars = async () => {
             setLoading(true);
             try {
+                console.log('Fetching available cars');
                 const carData = await carMarketplaceContract.getAvailableListings();
                 console.log('CarData: ', carData);  
                 setCars(carData.map(car => ({
                     tokenId: car.tokenId.toString(),
-                    price: car.price.toString(),  // Convert BigNumber to string for easier handling
-                    isAvailable: car.isAvailable
+                    price: car.price.toString(), 
+                    isActive: car.isActive
                 })));
                 setError(null);
             } catch (err) {
