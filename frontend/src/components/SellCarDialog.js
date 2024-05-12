@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Dialog, DialogTitle, DialogContent, TextField, DialogActions, Button, Typography, CircularProgress } from '@mui/material';
 import { estimateGasForListing } from '../services/CarService'; 
 import { useContracts } from '../hooks/useContracts';
@@ -6,7 +6,13 @@ import { useContracts } from '../hooks/useContracts';
 const SellCarDialog = ({ open, handleClose, handleSubmit, price, setPrice, tokenId }) => {
     const { carMarketplaceContract } = useContracts();
     const [estimatedGas, setEstimatedGas] = useState('');
-    const [loading, setLoading] = useState(false);  // Add this line
+    const [loading, setLoading] = useState(false);  
+
+    useEffect(() => {
+        setEstimatedGas('');
+        setPrice('');
+        setLoading(false);  
+    }, [open]);
 
     const handleEstimateGas = async () => {
         if (!price) {
@@ -37,8 +43,13 @@ const SellCarDialog = ({ open, handleClose, handleSubmit, price, setPrice, token
         handleSubmit(price);
     };
 
+    const handleCloseDialog = () => {
+        setLoading(false);  
+        handleClose();
+    }
+
     return (
-        <Dialog open={open} onClose={handleClose}>
+        <Dialog open={open} onClose={handleCloseDialog}>
             <DialogTitle>Sell Your Car</DialogTitle>
 
             <DialogContent style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
@@ -71,7 +82,7 @@ const SellCarDialog = ({ open, handleClose, handleSubmit, price, setPrice, token
                 )}
             </DialogContent>
             <DialogActions>
-                <Button onClick={handleClose}>Cancel</Button>
+                <Button onClick={handleCloseDialog}>Cancel</Button>
                 <Button onClick={handleSellClick} disabled={loading}>List Car for Sale</Button>
             </DialogActions>
         </Dialog>

@@ -18,9 +18,9 @@ export function useMyCars(address, updateTrigger) {
       setLoading(true);
 
       try {
-        // console.log("Fetching cars owned by: ", address);
+        console.log("Fetching cars owned by: ", address);
         const response = await carMarketplaceContract.getCarsOwnedBy(address);
-        // console.log("Response: ", response);
+        console.log("Response: ", response);
         
         const tokenIds = response.map((tokenId) => tokenId.toString());
         
@@ -47,6 +47,8 @@ export function useMyCars(address, updateTrigger) {
           tokenURI: tokenURIs[index],
           isActive: carData[index].isActive,
         }));
+
+        console.log("MyCars: ", myCars);
 
         setCars(myCars);
         setError(null);

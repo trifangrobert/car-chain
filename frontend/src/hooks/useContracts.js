@@ -10,13 +10,13 @@ export const useContracts = () => {
 
     const carTokenContract = useMemo(() => {
         if (!signer) return null;
-        console.log("CarToken from useContracts:", CarToken.address, CarToken.abi, signer)
+        // console.log("CarToken from useContracts:", CarToken.address, CarToken.abi, signer)
         return new ethers.Contract(CarToken.address, CarToken.abi, signer);
     }, [signer]);
 
     const carMarketplaceContract = useMemo(() => {
         if (!signer) return null;
-        console.log("CarMarketplace from useContracts:", CarMarketplace.address, CarMarketplace.abi, signer)
+        // console.log("CarMarketplace from useContracts:", CarMarketplace.address, CarMarketplace.abi, signer)
         return new ethers.Contract(CarMarketplace.address, CarMarketplace.abi, signer);
     }, [signer]);
 

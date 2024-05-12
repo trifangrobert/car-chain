@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogTitle, DialogContent, TextField, DialogActions, Button, Typography, CircularProgress } from '@mui/material';
 import { useContracts } from '../hooks/useContracts';
 import { estimateGasForUpdating } from '../services/CarService';
@@ -7,6 +7,12 @@ const UpdatePriceDialog = ({ open, handleClose, handleUpdate, price, setPrice, t
     const { carMarketplaceContract } = useContracts();
     const [loading, setLoading] = useState(false);
     const [estimatedGas, setEstimatedGas] = useState('');
+
+    useEffect(() => {
+        setEstimatedGas('');
+        setPrice('');
+        setLoading(false);  
+    }, [open]);
 
     const handleEstimateGas = async () => {
         if (!price) {
@@ -34,8 +40,13 @@ const UpdatePriceDialog = ({ open, handleClose, handleUpdate, price, setPrice, t
         handleUpdate(tokenId, price);
     };
 
+    const handleCloseDialog = () => {
+        setLoading(false);  
+        handleClose();
+    }
+
     return (
-        <Dialog open={open} onClose={handleClose}>
+        <Dialog open={open} onClose={handleCloseDialog}>
             <DialogTitle>Update Car Price</DialogTitle>
             <DialogContent style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
                 {loading ? (
@@ -67,7 +78,7 @@ const UpdatePriceDialog = ({ open, handleClose, handleUpdate, price, setPrice, t
                 )}
             </DialogContent>
             <DialogActions>
-                <Button onClick={handleClose}>Cancel</Button>
+                <Button onClick={handleCloseDialog}>Cancel</Button>
                 <Button onClick={handleUpdateClick} disabled={loading}>Update Price</Button>
             </DialogActions>
         </Dialog>

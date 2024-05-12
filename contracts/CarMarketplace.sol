@@ -120,8 +120,6 @@ contract CarMarketplace is ReentrancyGuard {
     ) external onlyTokenOwner(tokenId) {
         require(!isTokenListed(tokenId), "This car is already listed for sale");
         require(price > 0, "Price must be greater than 0");
-        require(carToken.ownerOf(tokenId) == msg.sender, "Caller is not the owner of the token");
-        require(carToken.ownerOf(tokenId) == listings[tokenId].seller, "Caller is not the owner of the token");
 
         listings[tokenId].price = price;
         listings[tokenId].isActive = true;

@@ -17,6 +17,11 @@ const DeleteCarDialog = ({ open, handleClose, handleDelete, tokenId }) => {
   const [estimatedGas, setEstimatedGas] = useState("");
 
   useEffect(() => {
+    setEstimatedGas("");
+    setLoading(false);
+  }, [open]);
+
+  useEffect(() => {
     const handleEstimateGas = async () => {
       try {
         if (tokenId) {
@@ -47,8 +52,13 @@ const DeleteCarDialog = ({ open, handleClose, handleDelete, tokenId }) => {
     handleDelete(tokenId);
   };
 
+  const handleCloseDialog = () => {
+    setLoading(false);
+    handleClose();
+  }
+  
   return (
-    <Dialog open={open} onClose={handleClose}>
+    <Dialog open={open} onClose={handleCloseDialog}>
       <DialogTitle>Delete Car</DialogTitle>
       <DialogContent
         style={{
@@ -73,7 +83,7 @@ const DeleteCarDialog = ({ open, handleClose, handleDelete, tokenId }) => {
         )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose}>Cancel</Button>
+        <Button onClick={handleCloseDialog}>Cancel</Button>
         <Button onClick={handleDeleteClick} disabled={loading}>
           Delete Car
         </Button>

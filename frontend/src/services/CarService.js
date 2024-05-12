@@ -54,10 +54,10 @@ export const estimateGasForDeleting = async (tokenId, carMarketplaceContract) =>
   }
 };
 
-export const estimateGasForBuying = async (tokenId, carMarketplaceContract) => {
+export const estimateGasForBuying = async (tokenId, price, carMarketplaceContract) => {
   try {
     console.log("Estimating gas for buying car:", tokenId);
-    const estimatedGas = await carMarketplaceContract.buyCar.estimateGas(tokenId);
+    const estimatedGas = await carMarketplaceContract.buyCar.estimateGas(tokenId, { value: ethers.parseUnits(price.toString(), "wei") });
     return estimatedGas.toString();
   } catch (error) {
     console.error("Error estimating gas:", error);
@@ -147,3 +147,16 @@ export const updateCarPrice = async (tokenId, price, carMarketplaceContract) => 
     throw new Error(error.message);
   }
 };
+
+export const buyCar = async (tokenId, price, carMarketplaceContract) => {
+  try {
+    console.log("Buying car:", tokenId);
+    const transaction = await carMarketplaceContract.buyCar(tokenId, { value: ethers.parseUnits(price.toString(), "wei") });
+    await transaction.wait();
+    console.log(`Transaction successful: ${transaction.hash}`);
+    return transaction;
+  } catch (error) {
+    console.error("Failed to buy car:", error);
+    throw new Error(error.message);
+  }
+}

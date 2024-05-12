@@ -1,6 +1,6 @@
 // components/MyCars.js
 import React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useUser } from "../contexts/UserContext";
 import { useMyCars } from "../hooks/useMyCars";
 import { useCarDetails } from "../hooks/useCarDetails";
@@ -28,6 +28,7 @@ import Loading from "../components/Loading";
 import SellCarDialog from "../components/SellCarDialog";
 import UpdateCarDialog from "../components/UpdateCarDialog";
 import DeleteCarDialog from "../components/DeleteCarDialog";
+import { toast } from "react-toastify";
 
 const MyCars = () => {
   const [updateTrigger, setUpdateTrigger] = useState(false);
@@ -35,7 +36,6 @@ const MyCars = () => {
   const user = useUser();
   const { address, signer, provider } = user;
   //   console.log("user:", user);
-  //   console.log("address:", address);
   //   console.log("signer:", signer);
   const {
     cars,
@@ -46,7 +46,7 @@ const MyCars = () => {
     carDetails,
     loading: detailsLoading,
     error: detailsError,
-  } = useCarDetails(cars);
+  } = useCarDetails(cars, updateTrigger);
   const [openDialog, setOpenDialog] = useState(false);
   const [openUpdateDialog, setOpenUpdateDialog] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
@@ -55,6 +55,52 @@ const MyCars = () => {
   const [price, setPrice] = useState("");
   const { carMarketplaceContract } = useContracts();
   const navigate = useNavigate();
+
+
+  useEffect(() => {
+    if (!carMarketplaceContract) return;
+
+    // Event listeners
+    const onCarListed = (tokenId, seller, price) => {
+      console.log("onCarListed event:", tokenId, seller, price);
+      if (seller === address) {
+        // Check if the current user is the seller
+        toast.success(
+          `CarListed event: Your car with token ID ${tokenId} is now listed for ${price} WEI.`
+        );
+      }
+    };
+
+    const onCarPriceUpdated = (tokenId, price) => {
+      toast.info(
+        `CarPriceUpdated event: Price for car with token ID ${tokenId} updated to ${price} WEI.`
+      );
+    };
+
+    const onListingCancelled = (tokenId, seller) => {
+      if (seller === address) {
+        toast.warning(
+          `ListingCancelled event: Listing for car with token ID ${tokenId} has been cancelled.`
+        );
+      }
+    };
+
+    // Subscribing to the events
+    carMarketplaceContract.on("CarListed", onCarListed);
+    carMarketplaceContract.on("CarPriceUpdated", onCarPriceUpdated);
+    carMarketplaceContract.on("ListingCancelled", onListingCancelled);
+
+    // Cleanup logic
+    return () => {
+      if (carMarketplaceContract) {
+        carMarketplaceContract.off("CarListed", onCarListed);
+        carMarketplaceContract.off("CarPriceUpdated", onCarPriceUpdated);
+        carMarketplaceContract.off("ListingCancelled", onListingCancelled);
+      }
+    };
+  }, [carMarketplaceContract, address]);
+
+
 
   // check if carMarketplaceContract is available
   if (!carMarketplaceContract) {
@@ -69,6 +115,7 @@ const MyCars = () => {
   const handleCloseSellDialog = () => {
     setOpenDialog(false);
     setPrice("");
+    setSelectedCar(null);
   };
 
   const handleOpenUpdateDialog = (car) => {
@@ -79,6 +126,7 @@ const MyCars = () => {
   const handleCloseUpdateDialog = () => {
     setOpenUpdateDialog(false);
     setPrice("");
+    setSelectedCar(null);
   };
 
   const handleOpenDeleteDialog = (car) => {
@@ -88,6 +136,7 @@ const MyCars = () => {
 
   const handleCloseDeleteDialog = () => {
     setOpenDeleteDialog(false);
+    setSelectedCar(null);
   };
 
   const handleSell = async () => {
@@ -106,7 +155,6 @@ const MyCars = () => {
           `Car ${selectedCar.tokenId} listed for sale at price ${price} WEI`
         );
         setUpdateTrigger(!updateTrigger);
-        setOpenDialog(false);
       } catch (error) {
         console.error("Failed to list car for sale:", error);
         setOpenDialog(false);
@@ -131,12 +179,12 @@ const MyCars = () => {
           `Listing for car ${selectedCar.tokenId} updated to price ${price} WEI`
         );
         setUpdateTrigger(!updateTrigger);
-        setOpenUpdateDialog(false);
       } catch (error) {
         console.error("Failed to update listing:", error);
         setOpenUpdateDialog(false);
       }
     }
+    handleCloseUpdateDialog();
   };
 
   const handleCancel = async (car) => {
@@ -146,11 +194,11 @@ const MyCars = () => {
         await cancelListing(selectedCar.tokenId, carMarketplaceContract);
         console.log(`Listing for car ${car.tokenId} cancelled`);
         setUpdateTrigger(!updateTrigger);
-        setOpenDeleteDialog(false);
       } catch (error) {
         console.error("Failed to cancel listing:", error);
       }
     }
+    handleCloseDeleteDialog();
   };
 
   if (!address)
@@ -180,7 +228,10 @@ const MyCars = () => {
       <Button
         variant="contained"
         color="primary"
-        onClick={() => navigate("/")}
+        onClick={() => {
+          navigate("/");
+          // window.location.reload(); // this is a workaround to refresh the page BUT it's not safe
+        }}
         sx={{ marginBottom: 2 }}
       >
         View Marketplace
