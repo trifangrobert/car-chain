@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useUser } from "../contexts/UserContext";
 import { useAvailableCars } from '../hooks/useAvailableCars'; 
 import { faCar, faMoneyBill } from '@fortawesome/free-solid-svg-icons';
@@ -9,13 +9,21 @@ import { Link } from 'react-router-dom';
 
 function AvailableCars() {
     const userAddress = useUser();
-    const { cars, loading, error } = useAvailableCars();
+    const { cars, loading, error, event } = useAvailableCars();
     const [buyError, setBuyError] = useState(null);
     const [gasFee, setGasFee] = useState(null);
     const [showGasFeePopup, setShowGasFeePopup] = useState(false);
     const [selectedTokenId, setSelectedTokenId] = useState(null);
     const [showLoadingPopup, setShowLoadingPopup] = useState(false);
     const [buyPrice, setBuyPrice] = useState('');
+
+    useEffect(() => {
+        // Refresh the page when the CarSold event is received
+        if (event) {
+            window.location.reload();
+            console.log("Refresh after CarSold Event" + event)
+        }
+    }, [event]);
 
     const estimateGas = async (tokenId, price) => {
         try {
@@ -74,7 +82,6 @@ function AvailableCars() {
             await transaction.wait();
 
             setShowLoadingPopup(false);
-            window.location.reload();
 
             setBuyPrice('');
             setSelectedTokenId(null);

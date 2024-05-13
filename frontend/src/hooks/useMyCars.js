@@ -5,6 +5,34 @@ export function useMyCars(address) {
   const [cars, setCars] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [carListendEvent, setCarListedEvent] = useState(null);
+  const [listingCancelledEvent, setListingCancelledEvent] = useState(null);
+  const [carPriceUpdatedEvent, setCarPriceUpdatedEvent] = useState(null);
+
+  const handleEvents = async () => {
+  
+      carMarketplaceContract.on("CarListed",  (tokenId, seller, price, carListedEvent) => {
+        console.log("CarListed event received:", carListedEvent);
+        console.log("Seller:", seller);
+        console.log("Token ID:", tokenId);
+        console.log("Price:", price);
+        setCarListedEvent(carListedEvent);
+    });
+      
+    carMarketplaceContract.on("ListingCancelled",  (tokenId, seller, listingCancelledEvent) => {
+      console.log("ListingCancelled event received:", listingCancelledEvent);
+      console.log("Seller:", seller);
+      console.log("Token ID:", tokenId);
+      setListingCancelledEvent(listingCancelledEvent);
+    });
+
+    carMarketplaceContract.on("CarPriceUpdated",  (tokenId, price, carPriceUpdatedEvent) => {
+      console.log("CarPriceUpdated event received:", carPriceUpdatedEvent);
+      console.log("Price:", price);
+      console.log("Token ID:", tokenId);
+      setCarPriceUpdatedEvent(carPriceUpdatedEvent);
+    });
+};
 
   useEffect(() => {
     const fetchCars = async () => {
@@ -61,8 +89,8 @@ export function useMyCars(address) {
     };
 
       fetchCars();
-    
+      handleEvents();
   }, [address]);
 
-  return { cars, loading, error };
+  return { cars, loading, error, carListendEvent, listingCancelledEvent, carPriceUpdatedEvent};
 }

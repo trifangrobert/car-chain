@@ -8,7 +8,7 @@ import { Link } from 'react-router-dom';
 
 const MyCars = () => {
     const userAddress = useUser();
-    const { cars, loading, error} = useMyCars(userAddress);
+    const { cars, loading, error,  carListendEvent, listingCancelledEvent, carPriceUpdatedEvent} = useMyCars(userAddress);
     const [sellPrice, setSellPrice] = useState('');
     const [showEnterPricePopup, setShowEnterPricePopup] = useState(false);
     const [showGasFeePopup, setShowGasFeePopup] = useState(false);
@@ -20,6 +20,21 @@ const MyCars = () => {
     const [gasFee, setGasFee] = useState(null);
     const [anyError, setAnyError] = useState(null);
     
+    useEffect(() => {
+        if (carListendEvent) {
+            window.location.reload();
+            console.log("Refresh after CarListed Event" + carListendEvent)
+        }
+        else if (listingCancelledEvent){
+            window.location.reload();
+            console.log("Refresh after ListingCancelled Event" + listingCancelledEvent)
+        }
+        else if (carPriceUpdatedEvent){
+            window.location.reload();
+            console.log("Refresh after PriceUpdated Event" + carPriceUpdatedEvent)
+        }
+    }, [carListendEvent, listingCancelledEvent, carPriceUpdatedEvent]);
+
     const estimateGas = async (tokenId, price, type) => {
         try {
             var gasEstimation = 0;
@@ -106,15 +121,12 @@ const MyCars = () => {
             await transaction.wait();
 
             setShowLoadingPopup(false);
-            window.location.reload();
 
             setSellPrice('');
             setSelectedTokenId(null);
             setGasFee(null);
         } catch (err) {
             setShowLoadingPopup(false);
-            window.location.reload();
-
             console.error('Failed to list car for sale:', err);
 
             setAnyError(err['info']['error']['message']);
@@ -143,14 +155,12 @@ const MyCars = () => {
             await transaction.wait();
 
             setShowLoadingPopup(false);
-            window.location.reload();
 
             setSellPrice('');
             setSelectedTokenId(null);
             setGasFee(null);
         } catch (err) {
             setShowLoadingPopup(false);
-
             console.error('Failed to update listing:', err);
 
             setAnyError(err['info']['error']['message']);
@@ -175,13 +185,11 @@ const MyCars = () => {
             await transaction.wait();
             
             setShowLoadingPopup(false);
-            window.location.reload();
 
             setSelectedTokenId(null);
             setGasFee(null);
         } catch (err) {
             setShowLoadingPopup(false);
-
             console.error('Failed to cancel listing:', err);
 
             setAnyError(err['info']['error']['message']);

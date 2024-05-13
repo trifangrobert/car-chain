@@ -4,7 +4,19 @@ export function useAvailableCars() {
     const [cars, setCars] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [event, setEvent] = useState(null);
+    const handleCarSoldEvent = async () => {
 
+    carMarketplaceContract.on("CarSold",  (seller, buyer, tokenId, price, event) => {
+        console.log("CarSold event received:", event);
+        console.log("Seller:", seller);
+        console.log("Buyer:", buyer);
+        console.log("Token ID:", tokenId);
+        console.log("Price:", price);
+        setEvent(event);
+    });
+
+    };
     useEffect(() => {
         const fetchCars = async () => {
             setLoading(true);
@@ -41,7 +53,8 @@ export function useAvailableCars() {
         };
 
         fetchCars();
+        handleCarSoldEvent();
     }, []);  
 
-    return { cars, loading, error };
+    return { cars, loading, error, event };
 }
