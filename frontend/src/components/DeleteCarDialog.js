@@ -59,7 +59,7 @@ const DeleteCarDialog = ({ open, handleClose, handleDelete, tokenId }) => {
   
   return (
     <Dialog open={open} onClose={handleCloseDialog}>
-      <DialogTitle>Delete Car</DialogTitle>
+      <DialogTitle>Cancel Listing</DialogTitle>
       <DialogContent
         style={{
           display: "flex",
@@ -85,7 +85,7 @@ const DeleteCarDialog = ({ open, handleClose, handleDelete, tokenId }) => {
       <DialogActions>
         <Button onClick={handleCloseDialog}>Cancel</Button>
         <Button onClick={handleDeleteClick} disabled={loading}>
-          Delete Car
+          Cancel Listing
         </Button>
       </DialogActions>
     </Dialog>

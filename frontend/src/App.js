@@ -5,6 +5,7 @@ import AvailableCars from './pages/AvailableCars';
 import MyCars from './pages/MyCars';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import UploadCar from './pages/UploadCar';
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
         <Routes>
           <Route path="/" element={<AvailableCars />} />
           <Route path="/my-cars" element={<MyCars />} />
+          <Route path="/upload-car" element={<UploadCar />} />
         </Routes>
         <ToastContainer />
     </UserProvider>

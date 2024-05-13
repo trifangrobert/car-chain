@@ -5,6 +5,7 @@ import { useUser } from "../contexts/UserContext";
 import { useMyCars } from "../hooks/useMyCars";
 import { useCarDetails } from "../hooks/useCarDetails";
 import {
+  Box,
   Typography,
   CircularProgress,
   List,
@@ -56,7 +57,6 @@ const MyCars = () => {
   const { carMarketplaceContract } = useContracts();
   const navigate = useNavigate();
 
-
   useEffect(() => {
     if (!carMarketplaceContract) return;
 
@@ -99,8 +99,6 @@ const MyCars = () => {
       }
     };
   }, [carMarketplaceContract, address]);
-
-
 
   // check if carMarketplaceContract is available
   if (!carMarketplaceContract) {
@@ -225,17 +223,26 @@ const MyCars = () => {
       <Typography variant="h4" gutterBottom>
         My Cars
       </Typography>
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={() => {
-          navigate("/");
-          // window.location.reload(); // this is a workaround to refresh the page BUT it's not safe
-        }}
+      <Box
+        display="flex"
+        justifyContent="space-between" 
         sx={{ marginBottom: 2 }}
       >
-        View Marketplace
-      </Button>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => navigate("/")} 
+        >
+          View Marketplace
+        </Button>
+        <Button
+          variant="contained"
+          color="inherit"
+          onClick={() => navigate("/upload-car")} 
+        >
+          Upload New Car
+        </Button>
+      </Box>
       <Typography variant="subtitle1">Address: {address}</Typography>
       {loading ? (
         <CircularProgress />
