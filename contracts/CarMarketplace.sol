@@ -3,9 +3,11 @@ pragma solidity ^0.8.20;
 
 import "./CarToken.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 
 contract CarMarketplace is ReentrancyGuard {
     CarToken public carToken;
+    AggregatorV3Interface internal priceFeed;
 
     struct Auction {
         uint256 tokenId;
@@ -127,10 +129,24 @@ contract CarMarketplace is ReentrancyGuard {
         );
         _;
     }
-
-
+    
+    
     constructor(address _carToken) {
         carToken = CarToken(_carToken);
+        priceFeed = AggregatorV3Interface(0x8A753747A1Fa494EC906cE90E9f37563A8AF630e); // Rinkeby ETH/USD address
+    }
+
+    function getETHtoUSD(uint256 ethAmount) public view returns (uint256) {
+        (
+            ,
+            int price,
+            ,
+            ,
+            
+        ) = priceFeed.latestRoundData();
+        require(price > 0, "Invalid price");
+        uint256 ethAmountInUSD = (ethAmount * uint256(price)) / 1e8;
+        return ethAmountInUSD;
     }
 
     // Listing
@@ -239,7 +255,6 @@ contract CarMarketplace is ReentrancyGuard {
                 totalListedCars++;
             }
         }
-    }
 
         return totalListedCars;
     }

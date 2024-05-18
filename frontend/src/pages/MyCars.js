@@ -351,6 +351,7 @@ const MyCars = () => {
       <Typography variant="subtitle1">Address: {address}</Typography>
       <Typography variant="subtitle1">
         Balance: {balance} ETH
+                 {carMarketplaceContract.getETHtoUSD(balance)} USD
       </Typography>
       {loading ? (
         <CircularProgress />
