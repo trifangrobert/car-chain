@@ -239,8 +239,6 @@ contract CarMarketplace is ReentrancyGuard {
                 totalListedCars++;
             }
         }
-    }
-
         return totalListedCars;
     }
 
