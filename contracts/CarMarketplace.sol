@@ -88,6 +88,7 @@ contract CarMarketplace is ReentrancyGuard {
             "CarMarketplace: caller is the token owner"
         );
         _;
+
     }
 
     modifier isListed(uint256 _tokenId) {
@@ -126,6 +127,7 @@ contract CarMarketplace is ReentrancyGuard {
         );
         _;
     }
+
 
     constructor(address _carToken) {
         carToken = CarToken(_carToken);
@@ -237,6 +239,7 @@ contract CarMarketplace is ReentrancyGuard {
                 totalListedCars++;
             }
         }
+    }
 
         return totalListedCars;
     }
@@ -261,7 +264,6 @@ contract CarMarketplace is ReentrancyGuard {
 
         return listedCars;
     }
-
     function getCarsOwnedBy(
         address owner
     ) external view returns (uint256[] memory) {
