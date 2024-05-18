@@ -103,7 +103,8 @@ export const estimateGasForPlacingBid = async (tokenId, amount, carMarketplaceCo
 export const listCar = async (
   tokenId,
   price,
-  carMarketplaceContract
+  carMarketplaceContract,
+  gasLimit
 ) => {
   // console.log("Provider:", provider);
 
@@ -111,7 +112,8 @@ export const listCar = async (
     const contractAddress = carMarketplaceContract.target;
     const transaction = await carMarketplaceContract.listCar(
       tokenId,
-      ethers.parseUnits(price.toString(), "wei")
+      ethers.parseUnits(price.toString(), "wei"), 
+      { gasLimit: gasLimit }
     );
     await transaction.wait();
     console.log(`Transaction successful: ${transaction.hash}`);
@@ -135,12 +137,13 @@ export const unlistCar = async (tokenId, carMarketplaceContract) => {
   }
 };
 
-export const updateCarPrice = async (tokenId, price, carMarketplaceContract) => {
+export const updateCarPrice = async (tokenId, price, carMarketplaceContract, gasLimit) => {
   try {
     console.log("Updating listing for car:", tokenId);
     const transaction = await carMarketplaceContract.updateCarPrice(
       tokenId,
-      ethers.parseUnits(price.toString(), "wei")
+      ethers.parseUnits(price.toString(), "wei"),
+      { gasLimit: gasLimit }
     );
     await transaction.wait();
     console.log(`Transaction successful: ${transaction.hash}`);

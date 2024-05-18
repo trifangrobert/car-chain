@@ -60,6 +60,7 @@ const MyCars = () => {
 
   const [selectedCar, setSelectedCar] = useState(null);
   const [price, setPrice] = useState("");
+  const [gasLimit, setGasLimit] = useState("");
   const [duration, setDuration] = useState(""); // in seconds
   const navigate = useNavigate();
 
@@ -240,13 +241,13 @@ const MyCars = () => {
   };
 
   const handleSell = async () => {
-    if (selectedCar && price) {
+    if (selectedCar && price && gasLimit) {
       console.log(
         `Listing car ${selectedCar.tokenId} for sale at price ${price} WEI`
       );
       // Call the listCarForSale function from the CarService
       try {
-        await listCar(selectedCar.tokenId, price, carMarketplaceContract);
+        await listCar(selectedCar.tokenId, price, carMarketplaceContract, gasLimit);
         console.log(
           `Car ${selectedCar.tokenId} listed for sale at price ${price} WEI`
         );
@@ -260,7 +261,7 @@ const MyCars = () => {
   };
 
   const handleUpdate = async (car) => {
-    if (selectedCar && price) {
+    if (selectedCar && price && gasLimit) {
       console.log(
         `Updating listing for car ${selectedCar.tokenId} to price ${price} WEI`
       );
@@ -269,7 +270,8 @@ const MyCars = () => {
         await updateCarPrice(
           selectedCar.tokenId,
           price,
-          carMarketplaceContract
+          carMarketplaceContract,
+          gasLimit
         );
         console.log(
           `Listing for car ${selectedCar.tokenId} updated to price ${price} WEI`
@@ -456,6 +458,8 @@ const MyCars = () => {
         handleSubmit={handleSell}
         price={price}
         setPrice={setPrice}
+        gasLimit={gasLimit}
+        setGasLimit={setGasLimit}
         tokenId={selectedCar?.tokenId}
       />
       <UpdateCarDialog
@@ -464,6 +468,8 @@ const MyCars = () => {
         handleUpdate={handleUpdate}
         price={price}
         setPrice={setPrice}
+        gasLimit={gasLimit}
+        setGasLimit={setGasLimit}
         tokenId={selectedCar?.tokenId}
       />
 
