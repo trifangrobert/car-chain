@@ -18,18 +18,15 @@ import { useNavigate } from "react-router-dom";
 import BuyCarDialog from "../components/BuyCarDialog";
 import { useState, useEffect } from "react";
 import { buyCar } from "../services/CarService";
-import { carMarketplaceContract } from "../ethersConnect";
 import { toast } from "react-toastify";
+import { useContracts } from "../hooks/useContracts";
 
 function AvailableCars() {
+  const { carMarketplaceContract } = useContracts();
   const { address, signer } = useUser();
   const [updateTrigger, setUpdateTrigger] = useState(false);
   const { cars, loading, error } = useAvailableCars(address, updateTrigger);
-  const {
-    carDetails,
-    loading: detailsLoading,
-    error: detailsError,
-  } = useCarDetails(cars, updateTrigger);
+  const { carDetails, loading: detailsLoading, error: detailsError } = useCarDetails(cars, updateTrigger);
 
   const navigate = useNavigate();
 

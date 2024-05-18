@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
-import { carMarketplaceContract, carTokenContract } from "../ethersConnect"; 
+import { useContracts } from "./useContracts";
 
 export function useMyCars(address, updateTrigger) {
+  const { carMarketplaceContract, carTokenContract } = useContracts();
   const [cars, setCars] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    
     const fetchCars = async () => {
         if (!address) {
             setCars([]);
@@ -24,28 +26,42 @@ export function useMyCars(address, updateTrigger) {
         
         const tokenIds = response.map((tokenId) => tokenId.toString());
         
-        // console.log("TokenIds: ", tokenIds);
+        console.log("TokenIds: ", tokenIds);
         
         // call  function tokenURI(uint256 tokenId) public view override(ERC721, ERC721URIStorage) returns (string memory)
         const tokenURIs = await Promise.all(
           tokenIds.map((tokenId) => carTokenContract.tokenURI(tokenId))
         );
 
-        // console.log("TokenURIs: ", tokenURIs);
+        console.log("TokenURIs: ", tokenURIs);
 
         // call carMarketplace.getListing(tokenId) for each tokenId
         const carData = await Promise.all(
-          tokenIds.map((tokenId) => carMarketplaceContract.getListing(tokenId))
+          tokenIds.map((tokenId) => carMarketplaceContract.getCarDetails(tokenId))
         );
 
         // console.log("CarData: ", carData);
 
+        // call getAuctionDetails(tokenId) for each tokenId and create an object of
+        // auction details with startPrice, highestBid, highestBidder, auctionEndTime 
+        const auctionDetails = await Promise.all(
+          tokenIds.map((tokenId) =>  carMarketplaceContract.getAuctionDetails(tokenId))
+        );
+
+        const auctionDetailsFormatted = auctionDetails.map((details) => ({
+          startPrice: details.startPrice.toString(),
+          highestBid: details.highestBid.toString(),
+          highestBidder: details.highestBidder,
+          auctionEndTime: details.auctionEndTime.toString(),
+        }));
+
         // myCars is an array of objects with price, tokenId and tokenURI
         const myCars = tokenIds.map((tokenId, index) => ({
           tokenId,
-          price: carData[index].isActive ? carData[index].price.toString() : null,
           tokenURI: tokenURIs[index],
-          isActive: carData[index].isActive,
+          isListed: carData[index].isListed,
+          isInAuction: carData[index].isInAuction,
+          auction: auctionDetailsFormatted[index],
         }));
 
         console.log("MyCars: ", myCars);

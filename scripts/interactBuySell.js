@@ -43,6 +43,50 @@ async function interact() {
   console.log("Getting available listings...");
   listings = await carMarketplace.getListedCars();
   console.log(listings);
+
+  tokenId = 4
+  // unlist car with token 4
+  console.log(`Unlisting token ${tokenId}...`);
+  unlistTx = await carMarketplace.connect(user4).unlistCar(tokenId);
+  await unlistTx.wait();
+
+  // update price of token 1 to 5000 wei
+  tokenId = 1;
+  price = 5000;
+  console.log(`Updating price of token ${tokenId} to ${price} wei...`);
+  updatePriceTx = await carMarketplace
+    .connect(user1)
+    .updateCarPrice(tokenId, price);
+  await updatePriceTx.wait();
+
+  // call getListingDetails
+  console.log("Getting listing details for token 1...");
+  listing = await carMarketplace.getListingDetails(tokenId);
+  console.log(listing);
+
+  // call getCarsOwnedBy for user1
+  console.log("Getting cars owned by user1...");
+  carsOwned = await carMarketplace.getCarsOwnedBy(user1.address);
+  console.log(carsOwned);
+
+  // user1 buys car token 2
+  tokenId = 2;
+  listing = await carMarketplace.getListingDetails(tokenId);
+  console.log(`User1 buying token ${tokenId} for ${listing.price} wei...`);
+  buyTx = await carMarketplace
+    .connect(user1)
+    .buyCar(tokenId, { value: listing.price });
+  await buyTx.wait();
+  console.log(`Token ${tokenId} bought successfully!`);
+
+  // call getCarsOwnedBy for user1
+  console.log("Getting cars owned by user1...");
+  carsOwned = await carMarketplace.getCarsOwnedBy(user1.address);
+  console.log(carsOwned);
+
+  console.log("Getting available listings...");
+  listings = await carMarketplace.getListedCars();
+  console.log(listings);
 }
 
 interact()

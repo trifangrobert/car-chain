@@ -13,7 +13,7 @@ export const estimateGasForListing = async (
   try {
     console.log("Estimating gas for listing car:", tokenId, price);
     const estimatedGas =
-      await carMarketplaceContract.listCarForSale.estimateGas(
+      await carMarketplaceContract.listCar.estimateGas(
         tokenId,
         ethers.parseUnits(price.toString(), "wei")
       );
@@ -42,10 +42,10 @@ export const estimateGasForUpdating = async (
 };
 
 
-export const estimateGasForDeleting = async (tokenId, carMarketplaceContract) => {
+export const estimateGasForUnlisting = async (tokenId, carMarketplaceContract) => {
   try {
     console.log("Estimating gas for deleting car:", tokenId);
-    const estimatedGas = await carMarketplaceContract.cancelListing.estimateGas(
+    const estimatedGas = await carMarketplaceContract.unlistCar.estimateGas(
       tokenId
     );
     return estimatedGas.toString();
@@ -65,7 +65,42 @@ export const estimateGasForBuying = async (tokenId, price, carMarketplaceContrac
 };
 
 
-export const listCarForSale = async (
+export const estimateGasForAuctionStart = async (tokenId, startPrice, duration, carMarketplaceContract) => {
+  try {
+    console.log("Estimating gas for starting auction:", tokenId);
+    const estimatedGas = await carMarketplaceContract.startAuction.estimateGas(
+      tokenId,
+      ethers.parseUnits(startPrice.toString(), "wei"),
+      duration
+    );
+    return estimatedGas.toString();
+  } catch (error) {
+    console.error("Error estimating gas:", error);
+  }
+}
+
+export const estimateGasForAuctionEnd = async (tokenId, carMarketplaceContract) => {
+  try {
+    console.log("Estimating gas for ending auction:", tokenId);
+    const estimatedGas = await carMarketplaceContract.endAuction.estimateGas(tokenId);
+    return estimatedGas.toString();
+  } catch (error) {
+    console.error("Error estimating gas:", error);
+  }
+}
+
+export const estimateGasForPlacingBid = async (tokenId, amount, carMarketplaceContract) => {
+  try {
+    console.log("Estimating gas for placing bid:", tokenId);
+    const estimatedGas = await carMarketplaceContract.placeBid.estimateGas(tokenId, { value: ethers.parseUnits(amount.toString(), "wei") });
+    return estimatedGas.toString();
+  } catch (error) {
+    console.error("Error estimating gas:", error);
+  }
+}
+
+
+export const listCar = async (
   tokenId,
   price,
   carMarketplaceContract
@@ -73,40 +108,8 @@ export const listCarForSale = async (
   // console.log("Provider:", provider);
 
   try {
-    console.log("Listing car for sale:", tokenId, price);
-
-    // const estimatedGas = await carMarketplaceContract.listCarForSale.estimateGas(
-    //   tokenId,
-    //   ethers.parseUnits(price.toString(), "wei")
-    // );
-
-    // const currentGasPrice = await provider.getFeeData().then((data) => data.gasPrice);
-    // console.log("Type of current gas price:", typeof currentGasPrice);
-
-    // const increasedGasPrice = Number(currentGasPrice) + 1000000000;
-    // console.log("Current gas price:", currentGasPrice);
-    // console.log("Increased gas price:", increasedGasPrice);
-
-    // const increasedGasLimit = Number(estimatedGas) + 100000;
-
-    // console.log("Estimated gas:", estimatedGas);
-    // console.log("Increased gas limit:", increasedGasLimit);
-
-    // console.log("carMarketplaceContract: ", carMarketplaceContract)
     const contractAddress = carMarketplaceContract.target;
-    console.log("contractAddress:", contractAddress);
-
-    console.log("carMarketplaceContract: ", carMarketplaceContract);
-
-    // const userAddress = address;
-    // console.log("userAddress:", userAddress);
-
-    // const contract = new ethers.Contract(contractAddress, carMarketplaceContract.abi, signer);
-
-    // const nonce = await provider.getTransactionCount(carMarketplaceContract.target);
-    // console.log("Nonce:", nonce);
-
-    const transaction = await carMarketplaceContract.listCarForSale(
+    const transaction = await carMarketplaceContract.listCar(
       tokenId,
       ethers.parseUnits(price.toString(), "wei")
     );
@@ -119,10 +122,10 @@ export const listCarForSale = async (
   }
 };
 
-export const cancelListing = async (tokenId, carMarketplaceContract) => {
+export const unlistCar = async (tokenId, carMarketplaceContract) => {
   try {
     console.log("Cancelling listing for car:", tokenId);
-    const transaction = await carMarketplaceContract.cancelListing(tokenId);
+    const transaction = await carMarketplaceContract.unlistCar(tokenId);
     await transaction.wait();
     console.log(`Transaction successful: ${transaction.hash}`);
     return transaction;
@@ -157,6 +160,49 @@ export const buyCar = async (tokenId, price, carMarketplaceContract) => {
     return transaction;
   } catch (error) {
     console.error("Failed to buy car:", error);
+    throw new Error(error.message);
+  }
+}
+
+export const startAuction = async (tokenId, startPrice, duration, carMarketplaceContract) => {
+  try {
+    console.log("Starting auction for car:", tokenId);
+    const transaction = await carMarketplaceContract.startAuction(
+      tokenId,
+      ethers.parseUnits(startPrice.toString(), "wei"),
+      duration
+    );
+    await transaction.wait();
+    console.log(`Transaction successful: ${transaction.hash}`);
+    return transaction;
+  } catch (error) {
+    console.error("Failed to start auction:", error);
+    throw new Error(error.message);
+  }
+}
+
+export const endAuction = async (tokenId, carMarketplaceContract) => {
+  try {
+    console.log("Ending auction for car:", tokenId);
+    const transaction = await carMarketplaceContract.endAuction(tokenId);
+    await transaction.wait();
+    console.log(`Transaction successful: ${transaction.hash}`);
+    return transaction;
+  } catch (error) {
+    console.error("Failed to end auction:", error);
+    throw new Error(error.message);
+  }
+}
+
+export const placeBid = async (tokenId, amount, carMarketplaceContract) => {
+  try {
+    console.log("Placing bid for car:", tokenId);
+    const transaction = await carMarketplaceContract.placeBid(tokenId, { value: ethers.parseUnits(amount.toString(), "wei") });
+    await transaction.wait();
+    console.log(`Transaction successful: ${transaction.hash}`);
+    return transaction;
+  } catch (error) {
+    console.error("Failed to place bid:", error);
     throw new Error(error.message);
   }
 }

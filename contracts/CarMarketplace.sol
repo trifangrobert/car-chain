@@ -72,11 +72,7 @@ contract CarMarketplace is ReentrancyGuard {
         address indexed bidder,
         uint256 amount
     );
-    event BidWithdrawn(
-        uint256 indexed tokenId,
-        address indexed bidder,
-        uint256 amount
-    );
+
 
     modifier onlyTokenOwner(uint256 _tokenId) {
         require(

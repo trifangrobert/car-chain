@@ -9,7 +9,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { useContracts } from "../hooks/useContracts";
-import { estimateGasForDeleting } from "../services/CarService";
+import { estimateGasForUnlisting } from "../services/CarService";
 
 const DeleteCarDialog = ({ open, handleClose, handleDelete, tokenId }) => {
   const { carMarketplaceContract } = useContracts();
@@ -27,7 +27,7 @@ const DeleteCarDialog = ({ open, handleClose, handleDelete, tokenId }) => {
         if (tokenId) {
           setLoading(true);
           console.log("tokenId from DeleteCarDialog:", tokenId);
-          const gas = await estimateGasForDeleting(
+          const gas = await estimateGasForUnlisting(
             tokenId,
             carMarketplaceContract
           );

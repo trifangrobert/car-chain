@@ -12,8 +12,8 @@ import CircularProgress from "@mui/material/CircularProgress";
 import { estimateGasForBuying } from "../services/CarService";
 import { useContracts } from "../hooks/useContracts";
 
-const BuyCarDialog = ({ open, handleClose, handleBuy, car }) => {
-  const { carMarketplaceContract } = useContracts();
+const BuyCarDialog = ({signer, open, handleClose, handleBuy, car }) => {
+  const { carMarketplaceContract } = useContracts(signer);
   const [loading, setLoading] = useState(false);
   const [estimatedGas, setEstimatedGas] = useState("");
   const [totalPrice, setTotalPrice] = useState("");
