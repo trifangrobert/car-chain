@@ -1,0 +1,42 @@
+{
+  "1": {
+    "name": "Lamborghini Urus",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/5/5c/Lamborghini_Urus_19.09.20_JM_(2)_(cropped).jpg",
+    "description": "A high-performance SUV that combines the soul of a super sports car with the functionality of an SUV."
+  },
+  "2": {
+    "name": "Bugatti Veyron",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Bugatti_Veyron_16.4_%E2%80%93_Frontansicht_%283%29%2C_5._April_2012%2C_D%C3%BCsseldorf.jpg/1920px-Bugatti_Veyron_16.4_%E2%80%93_Frontansicht_%283%29%2C_5._April_2012%2C_D%C3%BCsseldorf.jpg",
+    "description": "A mid-engine sports car, designed and developed in Germany by the Volkswagen Group and manufactured in Molsheim, France, by French automobile manufacturer Bugatti."
+  },
+  "3": {
+    "name": "Ferrari SF90 Stradale",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/13/Red_2019_Ferrari_SF90_Stradale_%2848264238897%29_%28cropped%29.jpg/1920px-Red_2019_Ferrari_SF90_Stradale_%2848264238897%29_%28cropped%29.jpg",
+    "description": "A mid-engine PHEV (Plug-in Hybrid Electric Vehicle) sports car produced by the Italian automobile manufacturer Ferrari."
+  },
+  "4": {
+    "name": "Porsche GT3 RS",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/Porsche_911_992_GT3.jpg/1920px-Porsche_911_992_GT3.jpg",
+    "description": "A high-performance variant of the Porsche 911 sports car primarily intended for racing."
+  },
+  "5": {
+    "name": "Maserati MC20",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Maserati_MC20_IAA_2021_1X7A0087.jpg/420px-Maserati_MC20_IAA_2021_1X7A0087.jpg",
+    "description": "The Maserati MC20 (MC being the acronym for Maserati Corse 2020, internal code M240) is a two-seater, rear-mid-engine sports car produced by Italian car manufacturer Maserati."
+  },
+  "6": {
+    "name": "McLaren 720S",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/2018_McLaren_720S_V8_S-A_4.0.jpg/1920px-2018_McLaren_720S_V8_S-A_4.0.jpg",
+    "description": "The McLaren 720S is a sports car designed and manufactured by British automobile manufacturer McLaren Automotive."
+  },
+  "7": {
+    "name": "Maserati MC20",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Maserati_MC20_IAA_2021_1X7A0087.jpg/420px-Maserati_MC20_IAA_2021_1X7A0087.jpg",
+    "description": "The Maserati MC20 is a two-seater, rear-mid-engine sports car produced by Italian car manufacturer Maserati."
+  },
+  "8": {
+    "name": "McLaren 720S",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/2018_McLaren_720S_V8_S-A_4.0.jpg/1920px-2018_McLaren_720S_V8_S-A_4.0.jpg",
+    "description": "The McLaren 720S is a sports car designed and manufactured by British automobile manufacturer McLaren Automotive."
+  }
+}

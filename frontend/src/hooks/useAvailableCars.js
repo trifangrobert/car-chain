@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { carMarketplaceContract } from '../ethersConnect';  // Adjust path as necessary
+import { useContracts } from './useContracts';
 
-export function useAvailableCars() {
+export function useAvailableCars(address, updateTrigger) {
+    const { carMarketplaceContract } = useContracts();
     const [cars, setCars] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -10,12 +11,20 @@ export function useAvailableCars() {
         const fetchCars = async () => {
             setLoading(true);
             try {
-                const carData = await carMarketplaceContract.getAvailableListings();
+                if (!carMarketplaceContract) {
+                    console.log('CarMarketplace contract not available');
+                    setCars([]);
+                    setError('CarMarketplace contract not available');
+                    setLoading(false);
+                    return;
+                }
+                console.log('Fetching available cars');
+                const carData = await carMarketplaceContract.getListedCars();
                 console.log('CarData: ', carData);  
                 setCars(carData.map(car => ({
                     tokenId: car.tokenId.toString(),
-                    price: car.price.toString(),  // Convert BigNumber to string for easier handling
-                    isAvailable: car.isAvailable
+                    price: car.price.toString(), 
+                    owner: car.seller
                 })));
                 setError(null);
             } catch (err) {
@@ -26,7 +35,7 @@ export function useAvailableCars() {
         };
 
         fetchCars();
-    }, []);  
+    }, [address, updateTrigger]);  
 
     return { cars, loading, error };
 }

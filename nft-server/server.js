@@ -1,37 +1,40 @@
 const express = require('express');
 const cors = require('cors');
+const fs = require('fs');
+const filePath = './cars.json';
 
 const app = express();
-app.use(cors());  // Enable CORS to allow your NFT smart contract to access the JSON data
+app.use(cors());
+app.use(express.json()); // Middleware to parse JSON bodies
 
 const port = 3001;
 
-// Sample data
-const cars = {
-    1: {
-        "name": "Lamborghini Urus",
-        "image": "https://upload.wikimedia.org/wikipedia/commons/5/5c/Lamborghini_Urus_19.09.20_JM_(2)_(cropped).jpg",
-        "description": "A high-performance SUV that combines the soul of a super sports car with the functionality of an SUV."
-    },
-    2: {
-        "name": "Bugatti Veyron",
-        "image": "https://en.wikipedia.org/wiki/Bugatti_Veyron#/media/File:Bugatti_Veyron_16.4_%E2%80%93_Frontansicht_(3),_5._April_2012,_D%C3%BCsseldorf.jpg",
-        "description": "A mid-engine sports car, designed and developed in Germany by the Volkswagen Group and manufactured in Molsheim, France, by French automobile manufacturer Bugatti."
-    },
-    3: {
-        "name": "Ferrari SF90 Stradale",
-        "image": "https://en.wikipedia.org/wiki/Ferrari_SF90_Stradale#/media/File:Red_2019_Ferrari_SF90_Stradale_(48264238897)_(cropped).jpg",
-        "description": "A mid-engine PHEV (Plug-in Hybrid Electric Vehicle) sports car produced by the Italian automobile manufacturer Ferrari."
-    },
-    4: {
-        "name": "Porsche GT3 RS",
-        "image": "https://en.wikipedia.org/wiki/Porsche_911_GT3#/media/File:Porsche_911_992_GT3.jpg",
-        "description": "A high-performance variant of the Porsche 911 sports car primarily intended for racing."
+// Load existing cars from the file
+function loadData() {
+    try {
+        const data = fs.readFileSync(filePath, 'utf8');
+        return JSON.parse(data);
+    } catch (err) {
+        console.error("Error reading from file, starting with empty data.");
+        return {};
     }
-};
+}
+
+// Save updated cars data to the file
+function saveData(data) {
+    try {
+        const jsonData = JSON.stringify(data, null, 2);
+        fs.writeFileSync(filePath, jsonData, 'utf8');
+    } catch (err) {
+        console.error("Error writing to file.");
+    }
+}
+
+const cars = loadData();  // Initialize cars with data loaded from file
 
 app.get('/token/:id', (req, res) => {
     const tokenId = req.params.id;
+    console.log('Getting token with ID:', tokenId);
     if (cars[tokenId]) {
         res.json(cars[tokenId]);
     } else {
@@ -39,17 +42,29 @@ app.get('/token/:id', (req, res) => {
     }
 });
 
-app.post('/token/new', (req, res) => {
-    const newCar = {
+app.post('/token/new/:id', (req, res) => {
+    const newTokenId = req.params.id;
+    console.log('Creating token with ID:', newTokenId);
+    cars[newTokenId] = {
         name: req.body.name,
         image: req.body.image,
         description: req.body.description
     };
-    const newTokenId = Object.keys(cars).length + 1;
-    cars[newTokenId] = newCar;
-    res.json(newCar);
+    saveData(cars); // Save updated data to file
+    res.json(cars[newTokenId]);
 });
 
+app.delete('/token/:id', (req, res) => {
+    const tokenId = req.params.id;
+    console.log('Deleting token with ID:', tokenId);
+    if (cars[tokenId]) {
+        delete cars[tokenId];
+        saveData(cars); 
+        res.send('Token deleted');
+    } else {
+        res.status(404).send('Token not found');
+    }
+});
 
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
