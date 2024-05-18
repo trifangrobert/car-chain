@@ -26,7 +26,13 @@ async function interact() {
     endAuctionTx,
     tokenId,
     bidAmount,
-    bidTx;
+    bidTx,
+    balance,
+    balance1,
+    balance2,
+    balance3,
+    balance4,
+    estimatedGas;
 
   tokenId = 3;
 
@@ -47,14 +53,22 @@ async function interact() {
 
   // user3 ends auction for token 3
   console.log(`Ending auction for token ${tokenId}...`);
+  balance3 = await ethers.provider.getBalance(user3.address);
   endAuctionTx = await carMarketplace.connect(user3).endAuction(tokenId);
   await endAuctionTx.wait();
   console.log(`Auction for token ${tokenId} ended successfully!`);
+  balance = await ethers.provider.getBalance(user3.address);
+  console.log(`User3 received ${balance.sub(balance3).toString()} wei`);
 
   // call isTokenInAuction for token 3
   console.log(`Checking if token ${tokenId} is in auction...`);
   inAuction = await carMarketplace.isTokenInAuction(tokenId);
   console.log(inAuction);
+
+  // getCarsOwned by user1
+  console.log(`Getting cars owned by user1...`);
+  carsOwned = await carMarketplace.getCarsOwnedBy(user1.address);
+  console.log(carsOwned);
 
   // call getActiveAuctions
   console.log("Getting active auctions...");

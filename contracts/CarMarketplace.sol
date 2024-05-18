@@ -7,11 +7,6 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 contract CarMarketplace is ReentrancyGuard {
     CarToken public carToken;
 
-    struct Bid {
-        address payable bidder;
-        uint256 amount;
-    }
-
     struct Auction {
         uint256 tokenId;
         uint256 startPrice;
@@ -42,7 +37,6 @@ contract CarMarketplace is ReentrancyGuard {
     mapping(uint256 => Car) public cars;
     mapping(uint256 => Auction) public auctions;
     mapping(uint256 => Listing) public listings;
-    mapping(uint256 => Bid[]) public bids;
 
     event CarCreated(uint256 indexed tokenId, address indexed owner);
     event CarListed(
@@ -347,43 +341,21 @@ contract CarMarketplace is ReentrancyGuard {
             "CarMarketplace: auction has not ended yet"
         );
 
-        if (auction.highestBidder == address(0)) { // maybe change this to require
-            // clear the auction details
-            delete auctions[_tokenId];
-            cars[_tokenId].isInAuction = false;
-            cars[_tokenId].auction = Auction(0, 0, 0, payable(address(0)), 0);
+        if (auction.highestBidder != address(0)) {
+            carToken.safeTransferFrom(
+                msg.sender,
+                auction.highestBidder,
+                _tokenId
+            );
 
-            emit AuctionEnded(_tokenId, address(0), 0);
-            return;
+            // pay the seller
+            (bool success, ) = payable(msg.sender).call{value: auction.highestBid}("");
+            require(success, "CarMarketplace: failed to send payment");
         }
 
-        // give the car to the highest bidder
-        carToken.safeTransferFrom(
-            msg.sender,
-            auction.highestBidder,
-            _tokenId
-        );
-
-        // transfer the funds to the seller
-        (bool success, ) = payable(msg.sender).call{value: auction.highestBid}("");
-        require(success, "CarMarketplace: failed to send funds to seller");
-
-        // refund the other bidders except the winner
-        Bid[] memory bidList = bids[_tokenId];
-        for (uint256 i = 0; i < bidList.length; i++) {
-            if (bidList[i].bidder != auction.highestBidder) {
-                (bool successRefund, ) = payable(bidList[i].bidder).call{value: bidList[i].amount}("");
-                require(successRefund, "CarMarketplace: failed to send bid");
-            }
-        }
-
-        // clear the auction details
         delete auctions[_tokenId];
         cars[_tokenId].isInAuction = false;
         cars[_tokenId].auction = Auction(0, 0, 0, payable(address(0)), 0);
-
-        // clear the bids
-        delete bids[_tokenId];
 
         emit AuctionEnded(_tokenId, auction.highestBidder, auction.highestBid);
     }
@@ -407,56 +379,17 @@ contract CarMarketplace is ReentrancyGuard {
             "CarMarketplace: bid must be higher than the current highest bid"
         );
 
-        // Bid memory previousBid = Bid({
-        //     bidder: auction.highestBidder,
-        //     amount: auction.highestBid
-        // });
+        // refund the previous bidder
+        if (auction.highestBidder != address(0)) {
+            (bool success, ) = payable(auction.highestBidder).call{value: auction.highestBid}("");
+            require(success, "CarMarketplace: failed to send previous bid");
 
-        // // refund the previous bidder
-        // if (previousBid.bidder != address(0)) {
-        //     (bool success, ) = previousBid.bidder.call{value: previousBid.amount}("");
-        //     require(success, "CarMarketplace: failed to send previous bid");
-
-        // }
-
-        bids[_tokenId].push(Bid({bidder: payable(msg.sender), amount: msg.value}));
+        }
 
         auctions[_tokenId].highestBid = msg.value;
         auctions[_tokenId].highestBidder = payable(msg.sender);
 
         emit BidPlaced(_tokenId, msg.sender, msg.value);
-    }
-
-    function withdrawBid(
-        uint256 _tokenId
-    ) external notTokenOwner(_tokenId) isInAuction(_tokenId) {
-        Bid[] storage bidList = bids[_tokenId];
-        require(bidList.length > 0, "CarMarketplace: no bids to withdraw");
-
-        bool found = false;
-        uint256 index = 0;
-        for (uint256 i = 0; i < bidList.length; i++) {
-            if (bidList[i].bidder == msg.sender) {
-                found = true;
-                index = i;
-                break;
-            }
-        }
-
-        require(found, "CarMarketplace: bid not found");
-
-        // refund the bid amount
-        uint256 refundAmount = bidList[index].amount;
-        (bool success, ) = payable(msg.sender).call{value: refundAmount}("");
-        require(success, "CarMarketplace: failed to send bid");
-
-        // remove the bid by shifting the array
-        for (uint256 i = index; i < bidList.length - 1; i++) {
-            bidList[i] = bidList[i + 1];
-        }
-        bidList.pop();
-
-        emit BidWithdrawn(_tokenId, msg.sender, refundAmount);
     }
 
     // helper function to get all active auctions
@@ -486,11 +419,6 @@ contract CarMarketplace is ReentrancyGuard {
         return (auctions[_tokenId].highestBidder, auctions[_tokenId].highestBid);
     }
 
-    function getBidsForToken(
-        uint256 _tokenId
-    ) external view returns (Bid[] memory) {
-        return bids[_tokenId];
-    }
 
     function getAuctionDetails(
         uint256 _tokenId
