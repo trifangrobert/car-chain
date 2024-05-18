@@ -9,6 +9,7 @@ export const UserProvider = ({ children }) => {
     signer: null,
     provider: null,
   });
+  const [gasLimit, setGasLimit] = useState(500000); // Default gas limit
 
   useEffect(() => {
     const provider = new ethers.BrowserProvider(window.ethereum);
@@ -20,7 +21,7 @@ export const UserProvider = ({ children }) => {
       } else {
         try {
           const signer = await provider.getSigner();
-          const address = signer.address;
+          const address = await signer.getAddress(); // Changed to get the address properly
           console.log("Signer: ", signer);
           console.log("Account updated:", address);
           setUser({ address, signer, provider });
@@ -54,7 +55,11 @@ export const UserProvider = ({ children }) => {
     };
   }, []);
 
-  return <UserContext.Provider value={user}>{children}</UserContext.Provider>;
+  return (
+    <UserContext.Provider value={{ ...user, gasLimit, setGasLimit }}>
+      {children}
+    </UserContext.Provider>
+  );
 };
 
 export const useUser = () => useContext(UserContext);

@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { carMarketplaceContract, carTokenContract } from "../ethersConnect"; 
+import { useUser } from '../contexts/UserContext';
 
 export function useMyCars(address, updateTrigger) {
   const [cars, setCars] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const { gasLimit } = useUser();
 
   useEffect(() => {
     const fetchCars = async () => {
@@ -19,23 +21,23 @@ export function useMyCars(address, updateTrigger) {
 
       try {
         console.log("Fetching cars owned by: ", address);
-        const response = await carMarketplaceContract.getCarsOwnedBy(address);
+        const response = await carMarketplaceContract.getCarsOwnedBy(address, { gasLimit });
         console.log("Response: ", response);
         
         const tokenIds = response.map((tokenId) => tokenId.toString());
-        
+
         // console.log("TokenIds: ", tokenIds);
         
         // call  function tokenURI(uint256 tokenId) public view override(ERC721, ERC721URIStorage) returns (string memory)
         const tokenURIs = await Promise.all(
-          tokenIds.map((tokenId) => carTokenContract.tokenURI(tokenId))
+          tokenIds.map((tokenId) => carTokenContract.tokenURI(tokenId, { gasLimit }))
         );
 
         // console.log("TokenURIs: ", tokenURIs);
 
         // call carMarketplace.getListing(tokenId) for each tokenId
         const carData = await Promise.all(
-          tokenIds.map((tokenId) => carMarketplaceContract.getListing(tokenId))
+          tokenIds.map((tokenId) => carMarketplaceContract.getListing(tokenId, { gasLimit }))
         );
 
         // console.log("CarData: ", carData);
@@ -61,7 +63,7 @@ export function useMyCars(address, updateTrigger) {
 
       fetchCars();
     
-  }, [address, updateTrigger]);
+  }, [address, updateTrigger, gasLimit]);
 
   return { cars, loading, error };
 }

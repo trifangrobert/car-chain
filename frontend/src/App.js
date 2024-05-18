@@ -6,10 +6,12 @@ import MyCars from './pages/MyCars';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import UploadCar from './pages/UploadCar';
+import SetGasLimit from './components/SetGasLimit';
 
 function App() {
   return (
     <UserProvider>
+        <SetGasLimit /> 
         <Routes>
           <Route path="/" element={<AvailableCars />} />
           <Route path="/my-cars" element={<MyCars />} />
@@ -17,6 +19,7 @@ function App() {
         </Routes>
         <ToastContainer />
     </UserProvider>
+    
   );
 }
 

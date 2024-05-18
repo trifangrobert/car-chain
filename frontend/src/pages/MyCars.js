@@ -35,7 +35,7 @@ const MyCars = () => {
   const [updateTrigger, setUpdateTrigger] = useState(false);
 
   const user = useUser();
-  const { address, signer, provider } = user;
+  const { address, gasLimit } = user;
   //   console.log("user:", user);
   //   console.log("signer:", signer);
   const {
@@ -147,7 +147,8 @@ const MyCars = () => {
         await listCarForSale(
           selectedCar.tokenId,
           price,
-          carMarketplaceContract
+          carMarketplaceContract,
+          { gasLimit }
         );
         console.log(
           `Car ${selectedCar.tokenId} listed for sale at price ${price} WEI`
@@ -171,7 +172,8 @@ const MyCars = () => {
         await updateCarPrice(
           selectedCar.tokenId,
           price,
-          carMarketplaceContract
+          carMarketplaceContract,
+          { gasLimit }
         );
         console.log(
           `Listing for car ${selectedCar.tokenId} updated to price ${price} WEI`
@@ -189,7 +191,7 @@ const MyCars = () => {
     // Call the cancelListing function from the CarService
     if (selectedCar) {
       try {
-        await cancelListing(selectedCar.tokenId, carMarketplaceContract);
+        await cancelListing(selectedCar.tokenId, carMarketplaceContract, { gasLimit });
         console.log(`Listing for car ${car.tokenId} cancelled`);
         setUpdateTrigger(!updateTrigger);
       } catch (error) {
@@ -225,20 +227,20 @@ const MyCars = () => {
       </Typography>
       <Box
         display="flex"
-        justifyContent="space-between" 
+        justifyContent="space-between"
         sx={{ marginBottom: 2 }}
       >
         <Button
           variant="contained"
           color="primary"
-          onClick={() => navigate("/")} 
+          onClick={() => navigate("/")}
         >
           View Marketplace
         </Button>
         <Button
           variant="contained"
           color="inherit"
-          onClick={() => navigate("/upload-car")} 
+          onClick={() => navigate("/upload-car")}
         >
           Upload New Car
         </Button>

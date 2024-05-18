@@ -22,7 +22,7 @@ import { carMarketplaceContract } from "../ethersConnect";
 import { toast } from "react-toastify";
 
 function AvailableCars() {
-  const { address, signer } = useUser();
+  const { address, gasLimit } = useUser();
   const [updateTrigger, setUpdateTrigger] = useState(false);
   const { cars, loading, error } = useAvailableCars(address, updateTrigger);
   const {
@@ -74,7 +74,7 @@ function AvailableCars() {
     if (selectedCar) {
       console.log("Buying car: ", car);
       try {
-        await buyCar(car.tokenId, car.price, carMarketplaceContract);
+        await buyCar(car.tokenId, car.price, carMarketplaceContract, { gasLimit });
         console.log("Car bought successfully");
         setBuyDialogOpen(false);
         setUpdateTrigger(!updateTrigger);
@@ -174,17 +174,18 @@ function AvailableCars() {
                       You own this
                     </Typography>
                   ) : (
-                    <Button
-                      variant="contained"
+                <Button
+                  variant="contained"
                       sx={{
                         backgroundColor: "#4CAF50",
                         color: "white",
                         marginTop: 2,
                       }}
-                      onClick={() => handleOpenBuyDialog(car)}
-                    >
-                      Buy
-                    </Button>
+                  onClick={() => handleOpenBuyDialog(car)}
+                  disabled={!car.isActive}
+                >
+                  Buy
+                </Button>
                   )}
                 </CardContent>
               </Card>
@@ -197,6 +198,7 @@ function AvailableCars() {
         handleClose={handleCloseBuyDialog}
         handleBuy={handleBuy}
         car={selectedCar}
+        onBuy={handleBuy}
       />
     </>
   );
